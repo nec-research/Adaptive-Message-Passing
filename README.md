@@ -1,6 +1,6 @@
 # Adaptive Message Passing (AMP)
 
-This is the official code to reproduce the experiments of our JMLR submission
+This is the official code to reproduce the experiments of our ICML submission
 
 [Adaptive Message Passing: A General Framework to Mitigate Oversmoothing, Oversquashing, and Underreaching](https://arxiv.org/abs/2312.16560)
 
@@ -14,11 +14,11 @@ This is the official code to reproduce the experiments of our JMLR submission
 
 ## Citing us
 
-    @article{errica2023adaptive,
+    @inproceedings{errica_adaptive_2025,
       title={Adaptive Message Passing: A General Framework to Mitigate Oversmoothing, Oversquashing, and Underreaching},
       author={Errica, Federico and Christiansen, Henrik and Zaverkin, Viktor and Maruyama, Takashi and Niepert, Mathias and Alesiani, Francesco},
-      journal={arXiv preprint arXiv:2312.16560},
-      year={2023}
+      booktitle={Proceedings of the 42nd International Conference on Machine Learning (ICML)},
+      year={2025}
     }
 
 ## How to reproduce our experiments
