@@ -11,6 +11,7 @@ import torchvision
 from pydgn.data.dataset import DatasetInterface
 from torch.utils.data import ConcatDataset
 from torch_geometric.data import Data
+from torch_geometric.datasets import WebKB, Planetoid, WikipediaNetwork, Actor
 from torchvision import transforms
 
 
@@ -537,3 +538,281 @@ class TreeNeighborsMatch(DatasetInterface):
         in_dim = len(self.leaf_indices)
         out_dim = len(self.leaf_indices)
         return in_dim, out_dim
+
+
+class PlanetoidDatasetInterface(Planetoid):
+    r"""
+    Class that wraps the :class:`torch_geometric.datasets.Planetoid` class to
+    provide aliases of some fields. It implements the interface
+    ``DatasetInterface`` but does not extend directly to avoid clashes
+    of ``__init__`` methods
+    """
+
+    def __init__(
+        self,
+        root,
+        name,
+        transform=None,
+        pre_transform=None,
+        pre_filter=None,
+        **kwargs,
+    ):
+        self.name = name
+        # Do not call DatasetInterface __init__ method in this case, because
+        # otherwise it will break
+        super().__init__(
+            root=root,
+            name=name,
+            transform=transform,
+            pre_transform=pre_transform,
+        )
+
+    @property
+    def dim_node_features(self) -> int:
+        r"""
+        Specifies the number of node features (after pre-processing, but in
+        the end it depends on the model that is implemented).
+        """
+        if self.name.lower() == "cora":
+            return 1433
+        elif self.name.lower() == "pubmed":
+            return 500
+        elif self.name.lower() == "citeseer":
+            return 3703
+
+    @property
+    def dim_edge_features(self) -> int:
+        r"""
+        Specifies the number of edge features (after pre-processing, but in
+        the end it depends on the model that is implemented).
+        """
+        return 0
+
+    @property
+    def dim_target(self) -> int:
+        r"""
+        Specifies the dimension of each target vector.
+        """
+        if self.name.lower() == "cora":
+            return 7
+        elif self.name.lower() == "pubmed":
+            return 3
+        elif self.name.lower() == "citeseer":
+            return 6
+
+    def download(self):
+        r"""
+        Downloads the Planetoid dataset to the :obj:`self.raw_dir` folder."""
+        super().download()
+
+    def process(self):
+        r"""
+        Processes the Planetoid dataset to the :obj:`self.processed_dir` folder
+        """
+        super().process()
+
+    def __len__(self) -> int:
+        r"""
+        Returns the number of graphs stored in the dataset.
+        Note: we need to implement both `len` and `__len__` to comply with
+        PyG interface
+        """
+        return 1
+
+
+class WebKBDatasetInterface(WebKB):
+
+
+    def __init__(
+        self,
+        root,
+        name,
+        transform=None,
+        pre_transform=None,
+        pre_filter=None,
+        **kwargs,
+    ):
+        self.name = name
+        # Do not call DatasetInterface __init__ method in this case, because
+        # otherwise it will break
+        super().__init__(
+            root=root,
+            name=name,
+            transform=transform,
+            pre_transform=pre_transform,
+        )
+
+    @property
+    def dim_node_features(self) -> int:
+        r"""
+        Specifies the number of node features (after pre-processing, but in
+        the end it depends on the model that is implemented).
+        """
+        return 1703
+
+    @property
+    def dim_edge_features(self) -> int:
+        r"""
+        Specifies the number of edge features (after pre-processing, but in
+        the end it depends on the model that is implemented).
+        """
+        return 0
+
+    @property
+    def dim_target(self) -> int:
+        r"""
+        Specifies the dimension of each target vector.
+        """
+        return 5
+
+    def download(self):
+        r"""
+        Downloads the Planetoid dataset to the :obj:`self.raw_dir` folder."""
+        super().download()
+
+    def process(self):
+        r"""
+        Processes the Planetoid dataset to the :obj:`self.processed_dir` folder
+        """
+        super().process()
+
+    def __len__(self) -> int:
+        r"""
+        Returns the number of graphs stored in the dataset.
+        Note: we need to implement both `len` and `__len__` to comply with
+        PyG interface
+        """
+        return 1
+
+
+class WikiNetDatasetInterface(WikipediaNetwork):
+
+
+    def __init__(
+        self,
+        root,
+        name,
+        transform=None,
+        pre_transform=None,
+        pre_filter=None,
+        **kwargs,
+    ):
+        self.name = name
+        # Do not call DatasetInterface __init__ method in this case, because
+        # otherwise it will break
+        super().__init__(
+            root=root,
+            name=name,
+            transform=transform,
+            pre_transform=pre_transform,
+        )
+
+    @property
+    def dim_node_features(self) -> int:
+        r"""
+        Specifies the number of node features (after pre-processing, but in
+        the end it depends on the model that is implemented).
+        """
+        if self.name.lower() == 'chameleon':
+            return 2325
+        elif self.name.lower() == 'squirrel':
+            return 2089
+        else:
+            raise NotImplementedError
+
+    @property
+    def dim_edge_features(self) -> int:
+        r"""
+        Specifies the number of edge features (after pre-processing, but in
+        the end it depends on the model that is implemented).
+        """
+        return 0
+
+    @property
+    def dim_target(self) -> int:
+        r"""
+        Specifies the dimension of each target vector.
+        """
+        return 5
+
+    def download(self):
+        r"""
+        Downloads the Planetoid dataset to the :obj:`self.raw_dir` folder."""
+        super().download()
+
+    def process(self):
+        r"""
+        Processes the Planetoid dataset to the :obj:`self.processed_dir` folder
+        """
+        super().process()
+
+    def __len__(self) -> int:
+        r"""
+        Returns the number of graphs stored in the dataset.
+        Note: we need to implement both `len` and `__len__` to comply with
+        PyG interface
+        """
+        return 1
+
+
+class ActorDatasetInterface(Actor):
+
+    def __init__(
+        self,
+        root,
+        name,
+        transform=None,
+        pre_transform=None,
+        pre_filter=None,
+        **kwargs,
+    ):
+        self.name = name
+        # Do not call DatasetInterface __init__ method in this case, because
+        # otherwise it will break
+        super().__init__(
+            root=root,
+            transform=transform,
+            pre_transform=pre_transform,
+        )
+
+    @property
+    def dim_node_features(self) -> int:
+        r"""
+        Specifies the number of node features (after pre-processing, but in
+        the end it depends on the model that is implemented).
+        """
+        return 932
+
+    @property
+    def dim_edge_features(self) -> int:
+        r"""
+        Specifies the number of edge features (after pre-processing, but in
+        the end it depends on the model that is implemented).
+        """
+        return 0
+
+    @property
+    def dim_target(self) -> int:
+        r"""
+        Specifies the dimension of each target vector.
+        """
+        return 5
+
+    def download(self):
+        r"""
+        Downloads the Planetoid dataset to the :obj:`self.raw_dir` folder."""
+        super().download()
+
+    def process(self):
+        r"""
+        Processes the Planetoid dataset to the :obj:`self.processed_dir` folder
+        """
+        super().process()
+
+    def __len__(self) -> int:
+        r"""
+        Returns the number of graphs stored in the dataset.
+        Note: we need to implement both `len` and `__len__` to comply with
+        PyG interface
+        """
+        return 1

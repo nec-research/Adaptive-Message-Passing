@@ -206,3 +206,4 @@ Werkzeug==2.3.7
 widgetsnbextension==4.0.9
 xlrd==2.0.1
 yarl==1.9.2
+prettytable

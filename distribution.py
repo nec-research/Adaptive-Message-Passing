@@ -789,6 +789,7 @@ class FixedDepth(Module):
         """
         super().__init__()
         self.depth = depth
+        self._probs = Parameter(torch.ones(depth + 1), requires_grad=True)
 
     def to(self, device):
         super().to(device)
@@ -800,14 +801,17 @@ class FixedDepth(Module):
     def compute_truncation_number(self) -> int:
         return self.depth
 
+    @property
+    def probs(self) -> torch.Tensor:
+        return softplus(self._probs)
+
     def compute_probability_vector(self) -> torch.Tensor:
         """
         Computes the **renormalized** vector of probabilities on the fly
 
         :return: a vector of arbitrary length with the probabilities
         """
-        depth = self.compute_truncation_number()
-        probs = torch.ones(depth + 1, device=self.device)
+        probs = self.probs
         probs = probs / probs.sum(0, keepdims=True)
         return probs
 

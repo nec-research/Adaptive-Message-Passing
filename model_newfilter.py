@@ -131,7 +131,7 @@ class UnboundedDepthNetwork(ModelInterface):
             else:
                 raise NotImplementedError('Positional encoding option not recognized')
 
-        # to be set up later by the PyDGN engine
+        # to be set up later by the pydgn engine
         self.torch_optimizer = None
 
         # to be set up after initialization of parameters
@@ -314,7 +314,7 @@ class UnboundedDepthNetwork(ModelInterface):
         Set the optimizer to later add the dynamically created
            layers' parameters to it.
         """
-        # recover torch Optimizer object from PyDGN one
+        # recover torch Optimizer object from pydgn one
         self.torch_optimizer = optimizer.optimizer
 
     def get_q_ell_named_parameters(self) -> dict:
@@ -590,7 +590,8 @@ class UnboundedDepthNetwork(ModelInterface):
                 entropy_qL,
                 qL_probs,
                 self.n_obs,
-                message_filters_list
+                message_filters_list,
+                data.eval_indices if hasattr(data, 'eval_indices') else None
             ),
         )
 

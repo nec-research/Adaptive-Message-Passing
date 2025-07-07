@@ -4,7 +4,7 @@ from typing import List, Tuple
 import numpy as np
 import torch
 from pydgn.training.callback.metric import Metric, MulticlassAccuracy, \
-    MeanSquareError, MeanAverageError, Classification
+    MeanSquareError, MeanAverageError, Classification, MulticlassClassification
 from sklearn.metrics import average_precision_score
 from torch import softmax
 from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss
@@ -487,7 +487,7 @@ class UDN_Depth(Metric):
                 entropy_qL,
                 qL_probs,
                 n_obs,
-                message_filters
+                message_filters,
             ),
         ) = outputs
 
@@ -801,3 +801,166 @@ class UDN_OGB_AP(OGB_AP):
         assert len(targets.shape) == 2
 
         return pred, targets
+
+
+class SingleGraphClassification(MulticlassClassification):
+
+    @property
+    def name(self) -> str:
+        return 'Single Graph Classification'
+
+    def get_predictions_and_targets(
+        self, targets: torch.Tensor, *outputs: List[torch.Tensor]
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        targets = outputs[2][1]
+        preds = outputs[0]
+        return preds, targets
+
+
+class SingleGraphAccuracy(MulticlassAccuracy):
+
+    @property
+    def name(self) -> str:
+        return 'Single Graph Accuracy'
+
+    def get_predictions_and_targets(
+        self, targets: torch.Tensor, *outputs: List[torch.Tensor]
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        preds = outputs[0]
+        targets = outputs[2][1]
+        correct = self._get_correct(preds)
+        return correct, targets
+
+
+
+
+class UDN_ELBO_SingleGraphClassification(MulticlassClassification):
+
+    @property
+    def name(self) -> str:
+        return 'Single Graph Classification'
+
+    def get_predictions_and_targets(
+        self, targets: torch.Tensor, *outputs: List[torch.Tensor]
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        (
+            output_state,
+            hidden_state,
+            (
+                batch,
+                log_p_theta_hidden,
+                log_p_theta_output,
+                log_p_L,
+                entropy_qL,
+                qL_probs,
+                n_obs,
+                message_filters,
+                eval_indices
+            ),
+        ) = outputs
+
+        # maximize log p y given x
+        log_p_y_list = [
+            -CrossEntropyLoss(reduction="mean")(
+                output_state[eval_indices, i, :], targets[eval_indices]
+            ).unsqueeze(0)
+            * n_obs
+            for i in range(output_state.shape[1])
+        ]
+
+        log_p_y = torch.stack(log_p_y_list, dim=1)
+
+        # (weighted) mean over layers
+        elbo = log_p_y
+        elbo += log_p_theta_hidden
+        elbo += log_p_theta_output
+        elbo += log_p_L
+
+        # FIXME This is what happens in UDN paper, qL_probs[0] = 0. but just for convenience
+        # elbo *= torch.cat((torch.ones(1,1).to(elbo.device), qL_probs[:, 1:]), dim=1)
+
+        # this is what makes most sense (that is, learn prob for first layer as well)
+        elbo *= qL_probs
+
+        elbo = elbo.sum(1)
+        elbo += entropy_qL
+        elbo = elbo / n_obs
+
+        return elbo, targets
+
+    def compute_metric(
+            self, targets: torch.Tensor, predictions: torch.Tensor
+    ) -> torch.tensor:
+        elbo = predictions
+        # to maximize the elbo we need to minimize -elbo
+        return -elbo.mean(0)  # sum over samples
+
+
+class AMPSingleGraphAccuracy(MulticlassAccuracy):
+
+    @property
+    def name(self) -> str:
+        return 'Single Graph Accuracy'
+
+    def get_predictions_and_targets(
+        self, targets: torch.Tensor, *outputs: List[torch.Tensor]
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+
+        (
+            output_state,
+            hidden_state,
+            (
+                batch,
+                log_p_theta_hidden,
+                log_p_theta_output,
+                log_p_L,
+                entropy_qL,
+                qL_probs,
+                n_obs,
+                message_filters,
+                eval_indices
+            ),
+        ) = outputs
+
+        # Weight predictions at each layer
+        # pred = (output_state * qL_log_probs.exp().unsqueeze(2)).sum(1)
+        pred = (output_state[eval_indices] * qL_probs.unsqueeze(2)).sum(1)
+
+        correct = self._get_correct(pred)
+
+        if len(targets.shape) == 2:
+            targets = targets.squeeze(dim=1)
+
+        return correct, targets[eval_indices]
+
+
+class UDN_SingleGraphDepth(Metric):
+    @property
+    def name(self) -> str:
+        return "UDN_Depth"
+
+    def get_predictions_and_targets(
+        self, targets: torch.Tensor, *outputs: List[torch.Tensor]
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        (
+            output_state,
+            hidden_state,
+            (
+                batch,
+                log_p_theta_hidden,
+                log_p_theta_output,
+                log_p_L,
+                entropy_qL,
+                qL_probs,
+                n_obs,
+                message_filters,
+                _
+            ),
+        ) = outputs
+
+        return torch.tensor([qL_probs.shape[1]]).unsqueeze(0), targets
+
+    def compute_metric(
+        self, targets: torch.Tensor, predictions: torch.Tensor
+    ) -> torch.tensor:
+        return float(predictions.max())

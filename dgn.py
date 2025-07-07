@@ -305,3 +305,148 @@ class DGN_Peptides(ModelInterface):
             h_list = torch.stack(h_list, dim=1)
 
         return y, h_list, [batch]
+
+
+class DGN_SingleGraph(ModelInterface):
+
+    def __init__(
+        self,
+        dim_node_features: int,
+        dim_edge_features: int,
+        dim_target: int,
+        readout_class: Callable[..., torch.nn.Module],
+        config: dict,
+    ):
+        super().__init__(
+            dim_node_features,
+            dim_edge_features,
+            dim_target,
+            readout_class,
+            config,
+        )
+
+        conv_layer = config.get('conv_layer', 'GCNConv')
+        self.conv_name = conv_layer
+
+        self.input_dim = dim_node_features
+        self.output_dim = dim_target
+        self.hidden_dim = config['hidden_dim']
+        self.num_layers = config['num_layers']
+        self.alpha = config.get('alpha', None)
+
+        inp = self.input_dim
+        self.emb = None
+        if self.hidden_dim is not None:
+            self.emb = Linear(self.input_dim, self.hidden_dim)
+            inp = self.hidden_dim
+
+        if dim_edge_features == 0:
+            self.conv_layer = getattr(pyg_nn, conv_layer)
+            self.conv = ModuleList()
+            for _ in range(self.num_layers):
+                if conv_layer == 'GINConv':
+                    mlp = Linear(inp, inp)
+                    self.conv.append(self.conv_layer(nn=mlp,
+                                                     train_eps=True))
+                elif conv_layer == 'GCN2Conv':
+                    self.conv.append(self.conv_layer(channels=inp,
+                                                     alpha=self.alpha))
+                else:
+                    self.conv.append(self.conv_layer(in_channels=inp,
+                                                     out_channels=inp))
+        else:
+            # DISCRETE EDGE TYPES ONLY
+            self.conv_layer = getattr(pyg_nn, conv_layer)
+            self.convs = ModuleList()
+            for _ in range(self.num_layers):
+                edge_convs = ModuleList()
+                for _ in range(self.dim_edge_features):
+                    if conv_layer == 'GINConv':
+                        mlp = Linear(inp, inp)
+                        edge_convs.append(self.conv_layer(nn=mlp,
+                                                         train_eps=True))
+                    elif conv_layer == 'GCN2Conv':
+                        edge_convs.append(self.conv_layer(channels=inp,
+                                                         alpha=self.alpha))
+                    else:
+                        edge_convs.append(self.conv_layer(in_channels=inp,
+                                                         out_channels=inp))
+                self.convs.append(edge_convs)
+
+        self.node_level_task = not config['global_aggregation']
+
+        if self.node_level_task:
+            self.readout = Sequential(OrderedDict([
+                ('L1', Linear(inp, inp // 2)),
+                ('LeakyReLU1', LeakyReLU()),
+                ('L2', Linear(inp // 2, self.output_dim)),
+                ('LeakyReLU2', LeakyReLU())
+            ]))
+        else:
+            self.readout = Sequential(OrderedDict([
+                ('L1', Linear(inp * 3, (inp * 3) // 2)),
+                ('LeakyReLU1', LeakyReLU()),
+                ('L2', Linear((inp * 3) // 2, self.output_dim)),
+                ('LeakyReLU2', LeakyReLU())
+            ]))
+
+    def forward(self, data: Data, retain_grad = False) -> torch.Tensor:
+        x, edge_index, batch = data.x, data.edge_index, data.batch
+        training_indices, eval_indices = data.training_indices, data.eval_indices
+
+        ## WORKS WITH DISCRETE FEATURES ONLY - implement R-GCN/GIN/ADGN
+        if self.dim_edge_features > 0:
+            edge_attr = data.edge_attr
+            assert len(edge_attr.shape) == 1  # can only be [num_edges]
+
+        h_list = []
+
+        x = self.emb(x) if self.emb else x
+
+        if self.conv_name == 'GCN2Conv':
+            x_0 = x
+
+        if self.dim_edge_features == 0:
+            for conv in self.conv:
+                if retain_grad:
+                    x.retain_grad()
+                if self.conv_name == 'GCN2Conv':
+                    x = tanh(conv(x, x_0, edge_index))
+                else:
+                    x = tanh(conv(x, edge_index))
+                h_list.append(x)
+        else:
+            for edge_convs in self.convs:
+                outputs = 0
+                for e, conv in enumerate(edge_convs):
+                    if self.conv_name == 'GCN2Conv':
+                        if retain_grad:
+                            x.retain_grad()
+
+                        outputs += tanh(conv(x, x_0, edge_index[:, edge_attr == e]))
+                    else:
+                        if retain_grad:
+                            x.retain_grad()
+
+                        outputs += tanh(conv(x, edge_index[:, edge_attr == e]))
+                x = outputs
+                h_list.append(x)
+
+        if not self.node_level_task:
+            x = torch.cat(
+                [global_add_pool(x, batch), global_max_pool(x, batch),
+                 global_mean_pool(x, batch)], dim=1)
+
+        x = self.readout(x)
+
+
+        # FOR NODE LEVEL TASKS WHERE YOU HAVE A SINGLE GRAPH
+        x = x[eval_indices]
+        h_list = [h[eval_indices] for h in h_list]
+        batch = batch[eval_indices]
+
+        if not retain_grad:
+            h_list = torch.stack(h_list, dim=1)
+
+        y = data.y[eval_indices]
+        return x, h_list, [batch, y]

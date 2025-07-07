@@ -1,0 +1,18 @@
+splitter:
+  root: DATA_SPLITS/
+  class_name: splitter.SingleGraphSplitterHomoHetero
+  args:
+    n_outer_folds: 10
+    n_inner_folds: 1
+    seed: 42
+    stratify: False
+    shuffle: True
+    inner_val_ratio: 0.32  # let's use a portion of the training set for validation at model selection time
+    outer_val_ratio: 0.32  # let's use a portion of the training set for validation at risk assessment time
+    test_ratio: 0.2  # not used in this case
+dataset:
+  root: DATA/
+  class_name: dataset.WebKBDatasetInterface
+  args:
+    root: DATA/
+    name: Wisconsin

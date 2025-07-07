@@ -1,7 +1,7 @@
   Adaptive Message Passing
 	
-  Authors:  Federico Errica (Federico.Errica@neclab.eu) 
-            Henrik Christiansen (Henrik.Christiansen@neclab.eu)
+  Authors: Federico Errica (Federico.Errica@neclab.eu) 
+           Henrik Christiansen (Henrik.Christiansen@neclab.eu)
 	    Viktor Zaverkin (Viktor.Zaverkin@neclab.eu)
   	    Takashi Maruyama (Takashi.Maruyama@neclab.eu)
  	    Mathias Niepert (mathias.niepert@ki.uni-stuttgart.de)
@@ -15,6 +15,7 @@
             layer_generator.py, 
             metric.py, 
             model.py, 
+            model_newfilter.py, 
             optimizer.py, 
             plot_output_vs_pred.py, 
             plotter.py, 

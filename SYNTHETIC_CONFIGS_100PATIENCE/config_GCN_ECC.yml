@@ -1,5 +1,5 @@
 # Telegram Bot
-telegram_config_file: telegram_config.yml
+# telegram_config_file: telegram_config.yml
 
 
 # Dataset and Splits
