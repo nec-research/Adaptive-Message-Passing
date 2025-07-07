@@ -1,14 +1,167 @@
+#   Adaptive Message Passing
+	
+#   Authors: Federico Errica (Federico.Errica@neclab.eu) 
+#            Henrik Christiansen (Henrik.Christiansen@neclab.eu)
+# 	    Viktor Zaverkin (Viktor.Zaverkin@neclab.eu)
+#   	    Takashi Maruyama (Takashi.Maruyama@neclab.eu)
+#  	    Mathias Niepert (mathias.niepert@ki.uni-stuttgart.de)
+#  	    Francesco Alesiani (Francesco.Alesiani @neclab.eu)
+  
+#   Files:    
+#             distribution.py, 
+#             layer_generator.py, 
+#             model.py, 
+#             util.py,
+#             example.py 
+            
+# NEC Laboratories Europe GmbH, Copyright (c) 2025-, All rights reserved.  
+
+#        THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
+ 
+#        PROPRIETARY INFORMATION ---  
+
+# SOFTWARE LICENSE AGREEMENT
+
+# ACADEMIC OR NON-PROFIT ORGANIZATION NONCOMMERCIAL RESEARCH USE ONLY
+
+# BY USING OR DOWNLOADING THE SOFTWARE, YOU ARE AGREEING TO THE TERMS OF THIS
+# LICENSE AGREEMENT.  IF YOU DO NOT AGREE WITH THESE TERMS, YOU MAY NOT USE OR
+# DOWNLOAD THE SOFTWARE.
+
+# This is a license agreement ("Agreement") between your academic institution
+# or non-profit organization or self (called "Licensee" or "You" in this
+# Agreement) and NEC Laboratories Europe GmbH (called "Licensor" in this
+# Agreement).  All rights not specifically granted to you in this Agreement
+# are reserved for Licensor. 
+
+# RESERVATION OF OWNERSHIP AND GRANT OF LICENSE: Licensor retains exclusive
+# ownership of any copy of the Software (as defined below) licensed under this
+# Agreement and hereby grants to Licensee a personal, non-exclusive,
+# non-transferable license to use the Software for noncommercial research
+# purposes, without the right to sublicense, pursuant to the terms and
+# conditions of this Agreement. NO EXPRESS OR IMPLIED LICENSES TO ANY OF
+# LICENSOR'S PATENT RIGHTS ARE GRANTED BY THIS LICENSE. As used in this
+# Agreement, the term "Software" means (i) the actual copy of all or any
+# portion of code for program routines made accessible to Licensee by Licensor
+# pursuant to this Agreement, inclusive of backups, updates, and/or merged
+# copies permitted hereunder or subsequently supplied by Licensor,  including
+# all or any file structures, programming instructions, user interfaces and
+# screen formats and sequences as well as any and all documentation and
+# instructions related to it, and (ii) all or any derivatives and/or
+# modifications created or made by You to any of the items specified in (i).
+
+# CONFIDENTIALITY/PUBLICATIONS: Licensee acknowledges that the Software is
+# proprietary to Licensor, and as such, Licensee agrees to receive all such
+# materials and to use the Software only in accordance with the terms of this
+# Agreement.  Licensee agrees to use reasonable effort to protect the Software
+# from unauthorized use, reproduction, distribution, or publication. All
+# publication materials mentioning features or use of this software must
+# explicitly include an acknowledgement the software was developed by NEC
+# Laboratories Europe GmbH.
+
+# COPYRIGHT: The Software is owned by Licensor.  
+
+# PERMITTED USES:  The Software may be used for your own noncommercial
+# internal research purposes. You understand and agree that Licensor is not
+# obligated to implement any suggestions and/or feedback you might provide
+# regarding the Software, but to the extent Licensor does so, you are not
+# entitled to any compensation related thereto.
+
+# DERIVATIVES: You may create derivatives of or make modifications to the
+# Software, however, You agree that all and any such derivatives and
+# modifications will be owned by Licensor and become a part of the Software
+# licensed to You under this Agreement.  You may only use such derivatives and
+# modifications for your own noncommercial internal research purposes, and you
+# may not otherwise use, distribute or copy such derivatives and modifications
+# in violation of this Agreement.
+
+# BACKUPS:  If Licensee is an organization, it may make that number of copies
+# of the Software necessary for internal noncommercial use at a single site
+# within its organization provided that all information appearing in or on the
+# original labels, including the copyright and trademark notices are copied
+# onto the labels of the copies.
+
+# USES NOT PERMITTED:  You may not distribute, copy or use the Software except
+# as explicitly permitted herein. Licensee has not been granted any trademark
+# license as part of this Agreement.  Neither the name of NEC Laboratories
+# Europe GmbH nor the names of its contributors may be used to endorse or
+# promote products derived from this Software without specific prior written
+# permission.
+
+# You may not sell, rent, lease, sublicense, lend, time-share or transfer, in
+# whole or in part, or provide third parties access to prior or present
+# versions (or any parts thereof) of the Software.
+
+# ASSIGNMENT: You may not assign this Agreement or your rights hereunder
+# without the prior written consent of Licensor. Any attempted assignment
+# without such consent shall be null and void.
+
+# TERM: The term of the license granted by this Agreement is from Licensee's
+# acceptance of this Agreement by downloading the Software or by using the
+# Software until terminated as provided below.  
+
+# The Agreement automatically terminates without notice if you fail to comply
+# with any provision of this Agreement.  Licensee may terminate this Agreement
+# by ceasing using the Software.  Upon any termination of this Agreement,
+# Licensee will delete any and all copies of the Software. You agree that all
+# provisions which operate to protect the proprietary rights of Licensor shall
+# remain in force should breach occur and that the obligation of
+# confidentiality described in this Agreement is binding in perpetuity and, as
+# such, survives the term of the Agreement.
+
+# FEE: Provided Licensee abides completely by the terms and conditions of this
+# Agreement, there is no fee due to Licensor for Licensee's use of the
+# Software in accordance with this Agreement.
+
+# DISCLAIMER OF WARRANTIES:  THE SOFTWARE IS PROVIDED "AS-IS" WITHOUT WARRANTY
+# OF ANY KIND INCLUDING ANY WARRANTIES OF PERFORMANCE OR MERCHANTABILITY OR
+# FITNESS FOR A PARTICULAR USE OR PURPOSE OR OF NON- INFRINGEMENT.  LICENSEE
+# BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE SOFTWARE AND
+# RELATED MATERIALS.
+
+# SUPPORT AND MAINTENANCE: No Software support or training by the Licensor is
+# provided as part of this Agreement.  
+
+# EXCLUSIVE REMEDY AND LIMITATION OF LIABILITY: To the maximum extent
+# permitted under applicable law, Licensor shall not be liable for direct,
+# indirect, special, incidental, or consequential damages or lost profits
+# related to Licensee's use of and/or inability to use the Software, even if
+# Licensor is advised of the possibility of such damage.
+
+# EXPORT REGULATION: Licensee agrees to comply with any and all applicable
+# export control laws, regulations, and/or other laws related to embargoes and
+# sanction programs administered by law.
+
+# SEVERABILITY: If any provision(s) of this Agreement shall be held to be
+# invalid, illegal, or unenforceable by a court or other tribunal of competent
+# jurisdiction, the validity, legality and enforceability of the remaining
+# provisions shall not in any way be affected or impaired thereby.
+
+# NO IMPLIED WAIVERS: No failure or delay by Licensor in enforcing any right
+# or remedy under this Agreement shall be construed as a waiver of any future
+# or other exercise of such right or remedy by Licensor.
+
+# GOVERNING LAW: This Agreement shall be construed and enforced in accordance
+# with the laws of Germany without reference to conflict of laws principles.
+# You consent to the personal jurisdiction of the courts of this country and
+# waive their rights to venue outside of Germany.
+
+# ENTIRE AGREEMENT AND AMENDMENTS: This Agreement constitutes the sole and
+# entire agreement between Licensee and Licensor as to the matter set forth
+# herein and supersedes any previous agreements, understandings, and
+# arrangements between the parties relating hereto.
+
 import math
 from typing import Tuple, List
 
 import scipy.stats as st
-
 import torch
-from pydgn.evaluation.util import return_class_and_args
 from torch import inf
 from torch.distributions import Normal, Poisson as tPoisson
 from torch.nn import Parameter, Module, ModuleList
 from torch.nn.functional import softplus
+
+from util import return_class_and_args
 
 
 def softplus_inverse(x):
@@ -38,9 +191,7 @@ class ContinuousDistribution(Module):
             value.dtype == torch.float32
         ), f"expected float tensor, found {value.dtype}"
 
-        assert (
-            len(value.shape) == 2
-        ), f"expected shape: (N,1), found {value.shape}"
+        assert len(value.shape) == 2, f"expected shape: (N,1), found {value.shape}"
 
         assert (
             value.shape[1] == 1
@@ -70,7 +221,7 @@ class ContinuousDistribution(Module):
             "You should subclass Distribution and " "implement this method."
         )
 
-    def quantile(self, p: float = 0.95) -> Tuple[torch.Tensor, torch.Tensor]:
+    def quantile(self, p: float = 0.99) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Computes the p-quantile for the distribution.
 
@@ -100,8 +251,7 @@ class FoldedNormal(ContinuousDistribution):
         super(FoldedNormal, self).__init__()
 
         assert loc >= 0.0, (
-            "expected loc >=0 for our work and for a correct quantile"
-            " computation"
+            "expected loc >=0 for our work and for a correct quantile" " computation"
         )
         self.base_loc = Parameter(torch.tensor([loc]), requires_grad=True)
         self._base_scale = Parameter(torch.tensor([scale]), requires_grad=True)
@@ -143,8 +293,7 @@ class FoldedNormal(ContinuousDistribution):
             * (
                 one
                 + torch.erf(
-                    -torch.Tensor([self.base_loc])
-                    / torch.tensor([self.base_scale])
+                    -torch.Tensor([self.base_loc]) / torch.tensor([self.base_scale])
                 ).to(self.device)
             )
         )
@@ -215,7 +364,7 @@ class FoldedNormal(ContinuousDistribution):
 
         return cdf
 
-    def _quantile_lower_bound(self, p: float = 0.95) -> torch.Tensor:
+    def _quantile_lower_bound(self, p: float = 0.99) -> torch.Tensor:
         # since cdf of normal always >= cdf folded normal, any p-quantile of
         # normal is <= p-quantile of the folded normal. Hence use as lower
         # bound
@@ -226,10 +375,10 @@ class FoldedNormal(ContinuousDistribution):
         normal_quantile = mu + sigma * sqrt_two * torch.erfinv(2.0 * p - 1.0)
 
         # if normal quantile is x < 0, then it becomes x'=0 in a folded normal
-        # but we require mu > 0 so it should not be a problem
+        # but we require mu > 0 so it should no t be a problem
         return torch.relu(normal_quantile)
 
-    def _quantile_upper_bound(self, p: float = 0.95) -> torch.Tensor:
+    def _quantile_upper_bound(self, p: float = 0.99) -> torch.Tensor:
         # upper bound derived from Chernoff's bound with t = 1/sigma
 
         def normal_cdf(x):
@@ -249,7 +398,7 @@ class FoldedNormal(ContinuousDistribution):
         )
         return p_quantile_upper_bound
 
-    def quantile(self, p: float = 0.95) -> Tuple[torch.Tensor, torch.Tensor]:
+    def quantile(self, p: float = 0.99) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Computes an approximation of the p-quantile of a folded normal
             distribution
@@ -261,69 +410,6 @@ class FoldedNormal(ContinuousDistribution):
         """
         assert isinstance(p, float), "expected p argument of type float"
         return self._quantile_lower_bound(p), self._quantile_upper_bound(p)
-
-
-def test_folded_normal_1():
-    """
-    Test mean, variance, pdf and cdf of folded normal for half normal case
-    """
-    two = torch.Tensor([2.0])
-    pi = torch.Tensor([math.pi])
-
-    n = Normal(loc=0, scale=1.0)
-    fn = FoldedNormal(loc=0, scale=1.0)
-
-    # test mean
-    assert torch.isclose(fn.mean, torch.sqrt(two / pi))
-
-    # test variance
-    assert torch.isclose(fn.variance, 1 - torch.pow(fn.mean, two))
-
-    # test pdf
-    x = torch.tensor([0.0]).unsqueeze(1)
-    assert fn.log_prob(x).exp() == 2.0 * n.log_prob(x).exp()
-
-    # test cfg
-    assert torch.isclose(
-        fn.cdf(torch.zeros(1, 1)),
-        torch.erf(torch.zeros(1) / (fn.base_scale * torch.sqrt(two))),
-    )
-
-
-def test_folded_normal_2():
-    """
-    Testing _validate_args() works as expected for half normal case
-    """
-    fn = FoldedNormal(loc=0, scale=1.0)
-
-    ok = False
-    try:
-        fn.log_prob(0.0)
-    except AssertionError as e:
-        ok = True
-    assert ok
-
-    ok = False
-    try:
-        x = torch.zeros(1)
-        assert not fn.log_prob(x)
-
-        x = torch.zeros(5)
-        assert not fn.log_prob(x)
-    except AssertionError as e:
-        ok = True
-    assert ok
-
-    ok = False
-    try:
-        x = torch.zeros(4, 6)
-        assert not fn.log_prob(x)
-
-        x = torch.zeros(1, 2)
-        assert not fn.log_prob(x)
-    except AssertionError as e:
-        ok = True
-    assert ok
 
 
 class DiscretizedDistribution(Module):
@@ -339,9 +425,7 @@ class DiscretizedDistribution(Module):
             allows us to instantiate a discretized distribution
         """
         super().__init__()
-        base_d_cls, base_d_args = return_class_and_args(
-            kwargs, "base_distribution"
-        )
+        base_d_cls, base_d_args = return_class_and_args(kwargs, "base_distribution")
         self.base_distribution = base_d_cls(**base_d_args)
 
     def to(self, device):
@@ -372,10 +456,7 @@ class DiscretizedDistribution(Module):
 
         one = torch.ones(1).to(value.device)
         # avoids a degenerate case where the base distribution has the
-        # same cdf for both value and value+1
-        # which leads to nan. Also, a too small value can cause some
-        # distributions to have prob 1 for a single layer, and the model
-        # gets trapped in there
+        # same cdf for both value and value+1, which leads to nan.
         tmp = torch.ones(1).to(value.device) * 1e-3
 
         return torch.log(
@@ -397,7 +478,7 @@ class DiscretizedDistribution(Module):
 
         return self.base_distribution.cdf(value + one)
 
-    def quantile(self, p: float = 0.95) -> Tuple[torch.Tensor, torch.Tensor]:
+    def quantile(self, p: float = 0.99) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Computes the approximated p-quantile for the discrete distribution.
         The lower and upper bounds returned by the method will coincide, since
@@ -416,17 +497,13 @@ class DiscretizedDistribution(Module):
         l = torch.floor(lower_bound).to(self.device)
         u = torch.ceil(upper_bound).to(self.device)
 
-        # ------------------------------------------------------------------ #
-        # TODO fix this! issues with binary search when using quantile = 0.99)
-        #  we could also remove the binary search
         if self.cdf((u).unsqueeze(1)) < p:
             ok = False
             while not ok:
                 u += 1
                 if self.cdf((u).unsqueeze(1)) >= p:
                     ok = True
-            return u,u
-        # ------------------------------------------------------------------ #
+            return u, u
 
         # corner case
         if l == u:
@@ -510,28 +587,23 @@ class Poisson(Module):
         self._validate_args(value)
         p = st.poisson(self.mean.item())
         return (
-            torch.tensor(p.cdf(value.detach().cpu().numpy()))
-            .float()
-            .to(value.device)
+            torch.tensor(p.cdf(value.detach().cpu().numpy())).float().to(value.device)
         )
 
-    def quantile(self, p: float = 0.95) -> Tuple[torch.Tensor, torch.Tensor]:
+    def quantile(self, p: float = 0.99) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Returns Lower and Upper bounds as computed in ICML 2022 paper
         """
         rate = self.mean
 
-        if p != 0.95:
-            ub_quantile = torch.ceil(torch.tensor([10000.]))
+        if p != 0.99:
+            ub_quantile = torch.ceil(torch.tensor([10000.0]))
         else:
             ub_quantile = torch.ceil(1.3 * rate + 5.0)
 
-        # assert p == 0.95, "Upper bound to poisson available only for 0.95"
+        # assert p == 0.99, "Upper bound to poisson available only for 0.99"
 
-
-        lb_quantile = torch.floor(
-            rate - torch.log(torch.tensor([2.0])).to(rate.device)
-        )
+        lb_quantile = torch.floor(rate - torch.log(torch.tensor([2.0])).to(rate.device))
 
         if lb_quantile < 0.0:
             lb_quantile = torch.zeros(1)
@@ -578,6 +650,7 @@ class TruncatedDistribution(Module):
         dist_d_cls, dist_d_args = return_class_and_args(
             kwargs, "discretized_distribution"
         )
+
         self.discretized_distribution = dist_d_cls(**dist_d_args)
         self.truncation_quantile = truncation_quantile
 
@@ -617,36 +690,11 @@ class TruncatedDistribution(Module):
         """
         truncation_number = self.compute_truncation_number()
 
-        # no gradient so far, we detach on purpose
-        # +1 because we need to have p(truncation_number) in the vector
         x = torch.arange(
             truncation_number + 1, dtype=torch.float32, device=self.device
         ).unsqueeze(1)
 
         probs = self.discretized_distribution.compute_probability_vector(x)
-
-        # gradient starts flowing from here!
-        # unnorm_log_probs = self.discretized_distribution.log_prob(x).squeeze(1)
-
-        # print(f'sum probs: {unnorm_log_probs.exp().sum()}')
-        # print(f'sum probs minus last: {unnorm_log_probs.exp()[:-1].sum()}')
-
-        # # renormalize using log-sum-exp trick
-        # norm_log_probs = unnorm_log_probs - torch.logsumexp(
-        #     unnorm_log_probs, dim=0
-        # )
-        # assert torch.allclose(
-        #     norm_log_probs.exp().sum(), torch.ones(1, device=self.device)
-        # )
-        # return norm_log_probs
-
-        # FIXME this is what happens in the original paper
-        #  we want to learn the parameters for first layer as well, so
-        #  we commented below and added a + 1 to truncation number
-        # probs = torch.cat([torch.zeros(1,
-        #                                device=probs.device,
-        #                                dtype=probs.dtype),
-        #                    probs])
 
         assert torch.allclose(probs.sum(), torch.ones(1, device=self.device))
         return probs
@@ -721,8 +769,7 @@ class MixtureTruncated(Module):
         # exploits the implementation of quantile() for the
         # DiscretizedDistribution, which returns
         truncation_list = [
-            d.quantile(p=self.truncation_quantile)[1]
-            for d in self.distributions
+            d.quantile(p=self.truncation_quantile)[1] for d in self.distributions
         ]
         truncation_number = max(truncation_list)
 
@@ -747,12 +794,8 @@ class MixtureTruncated(Module):
         ).unsqueeze(1)
 
         # gradient starts flowing from here!
-        unnorm_log_probs = torch.cat(
-            [d.log_prob(x) for d in self.distributions], dim=1
-        )
-        w_unnorm_log_probs = (
-            unnorm_log_probs + self.mixing_weights.log().unsqueeze(0)
-        )
+        unnorm_log_probs = torch.cat([d.log_prob(x) for d in self.distributions], dim=1)
+        w_unnorm_log_probs = unnorm_log_probs + self.mixing_weights.log().unsqueeze(0)
         w_unnorm_log_probs = torch.logsumexp(w_unnorm_log_probs, dim=1)
 
         # renormalize using log-sum-exp trick
@@ -766,55 +809,5 @@ class MixtureTruncated(Module):
         probs = w_unnorm_log_probs.exp()
         probs = probs / probs.sum()
 
-        # FIXME this is what happens in the original paper
-        #  we want to learn the parameters for first layer as well, so
-        #  we commented below and added a + 1 to truncation number
-        # probs = torch.cat([torch.zeros(1,
-        #                                device=probs.device,
-        #                                dtype=probs.dtype),
-        #                    probs])
-
         assert torch.allclose(probs.sum(), torch.ones(1, device=self.device)), probs
         return probs
-
-
-class FixedDepth(Module):
-    def __init__(self, depth: int, **kwargs):
-        """
-        Implement the ablation of the method to have fixed depth.
-        All probability is concentrated on the last layer.
-
-        :param depth: the fixed depth of the network
-        :param kwargs: not used
-        """
-        super().__init__()
-        self.depth = depth
-        self._probs = Parameter(torch.ones(depth + 1), requires_grad=True)
-
-    def to(self, device):
-        super().to(device)
-        self.device = device
-
-    def get_q_ell_named_parameters(self) -> dict:
-        return {}
-
-    def compute_truncation_number(self) -> int:
-        return self.depth
-
-    @property
-    def probs(self) -> torch.Tensor:
-        return softplus(self._probs)
-
-    def compute_probability_vector(self) -> torch.Tensor:
-        """
-        Computes the **renormalized** vector of probabilities on the fly
-
-        :return: a vector of arbitrary length with the probabilities
-        """
-        probs = self.probs
-        probs = probs / probs.sum(0, keepdims=True)
-        return probs
-
-    @property
-    def mean(self) -> torch.Tensor:
-        return -1

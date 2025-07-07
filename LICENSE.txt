@@ -8,23 +8,13 @@
  	    Francesco Alesiani (Francesco.Alesiani @neclab.eu)
   
   Files:    
-            Data_Converter.ipynb,
-            dataset.py, 
             distribution.py, 
-            experiment.py, 
             layer_generator.py, 
-            metric.py, 
             model.py, 
-            model_newfilter.py, 
-            optimizer.py, 
-            plot_output_vs_pred.py, 
-            plotter.py, 
-            scheduler.py, 
-            splitter.py, 
-            util.py, 
-            Test_distributions.ipynb
-
-NEC Laboratories Europe GmbH, Copyright (c) 2024-, All rights reserved.  
+            util.py,
+            example.py 
+            
+NEC Laboratories Europe GmbH, Copyright (c) 2025-, All rights reserved.  
 
        THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
  

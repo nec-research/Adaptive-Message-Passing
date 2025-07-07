@@ -1,187 +1,275 @@
-from typing import Tuple, Optional, List, Callable, Mapping, Any
+#   Adaptive Message Passing
+	
+#   Authors: Federico Errica (Federico.Errica@neclab.eu) 
+#            Henrik Christiansen (Henrik.Christiansen@neclab.eu)
+# 	    Viktor Zaverkin (Viktor.Zaverkin@neclab.eu)
+#   	    Takashi Maruyama (Takashi.Maruyama@neclab.eu)
+#  	    Mathias Niepert (mathias.niepert@ki.uni-stuttgart.de)
+#  	    Francesco Alesiani (Francesco.Alesiani @neclab.eu)
+  
+#   Files:    
+#             distribution.py, 
+#             layer_generator.py, 
+#             model.py, 
+#             util.py,
+#             example.py 
+            
+# NEC Laboratories Europe GmbH, Copyright (c) 2025-, All rights reserved.  
 
-import numpy as np
+#        THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
+ 
+#        PROPRIETARY INFORMATION ---  
+
+# SOFTWARE LICENSE AGREEMENT
+
+# ACADEMIC OR NON-PROFIT ORGANIZATION NONCOMMERCIAL RESEARCH USE ONLY
+
+# BY USING OR DOWNLOADING THE SOFTWARE, YOU ARE AGREEING TO THE TERMS OF THIS
+# LICENSE AGREEMENT.  IF YOU DO NOT AGREE WITH THESE TERMS, YOU MAY NOT USE OR
+# DOWNLOAD THE SOFTWARE.
+
+# This is a license agreement ("Agreement") between your academic institution
+# or non-profit organization or self (called "Licensee" or "You" in this
+# Agreement) and NEC Laboratories Europe GmbH (called "Licensor" in this
+# Agreement).  All rights not specifically granted to you in this Agreement
+# are reserved for Licensor. 
+
+# RESERVATION OF OWNERSHIP AND GRANT OF LICENSE: Licensor retains exclusive
+# ownership of any copy of the Software (as defined below) licensed under this
+# Agreement and hereby grants to Licensee a personal, non-exclusive,
+# non-transferable license to use the Software for noncommercial research
+# purposes, without the right to sublicense, pursuant to the terms and
+# conditions of this Agreement. NO EXPRESS OR IMPLIED LICENSES TO ANY OF
+# LICENSOR'S PATENT RIGHTS ARE GRANTED BY THIS LICENSE. As used in this
+# Agreement, the term "Software" means (i) the actual copy of all or any
+# portion of code for program routines made accessible to Licensee by Licensor
+# pursuant to this Agreement, inclusive of backups, updates, and/or merged
+# copies permitted hereunder or subsequently supplied by Licensor,  including
+# all or any file structures, programming instructions, user interfaces and
+# screen formats and sequences as well as any and all documentation and
+# instructions related to it, and (ii) all or any derivatives and/or
+# modifications created or made by You to any of the items specified in (i).
+
+# CONFIDENTIALITY/PUBLICATIONS: Licensee acknowledges that the Software is
+# proprietary to Licensor, and as such, Licensee agrees to receive all such
+# materials and to use the Software only in accordance with the terms of this
+# Agreement.  Licensee agrees to use reasonable effort to protect the Software
+# from unauthorized use, reproduction, distribution, or publication. All
+# publication materials mentioning features or use of this software must
+# explicitly include an acknowledgement the software was developed by NEC
+# Laboratories Europe GmbH.
+
+# COPYRIGHT: The Software is owned by Licensor.  
+
+# PERMITTED USES:  The Software may be used for your own noncommercial
+# internal research purposes. You understand and agree that Licensor is not
+# obligated to implement any suggestions and/or feedback you might provide
+# regarding the Software, but to the extent Licensor does so, you are not
+# entitled to any compensation related thereto.
+
+# DERIVATIVES: You may create derivatives of or make modifications to the
+# Software, however, You agree that all and any such derivatives and
+# modifications will be owned by Licensor and become a part of the Software
+# licensed to You under this Agreement.  You may only use such derivatives and
+# modifications for your own noncommercial internal research purposes, and you
+# may not otherwise use, distribute or copy such derivatives and modifications
+# in violation of this Agreement.
+
+# BACKUPS:  If Licensee is an organization, it may make that number of copies
+# of the Software necessary for internal noncommercial use at a single site
+# within its organization provided that all information appearing in or on the
+# original labels, including the copyright and trademark notices are copied
+# onto the labels of the copies.
+
+# USES NOT PERMITTED:  You may not distribute, copy or use the Software except
+# as explicitly permitted herein. Licensee has not been granted any trademark
+# license as part of this Agreement.  Neither the name of NEC Laboratories
+# Europe GmbH nor the names of its contributors may be used to endorse or
+# promote products derived from this Software without specific prior written
+# permission.
+
+# You may not sell, rent, lease, sublicense, lend, time-share or transfer, in
+# whole or in part, or provide third parties access to prior or present
+# versions (or any parts thereof) of the Software.
+
+# ASSIGNMENT: You may not assign this Agreement or your rights hereunder
+# without the prior written consent of Licensor. Any attempted assignment
+# without such consent shall be null and void.
+
+# TERM: The term of the license granted by this Agreement is from Licensee's
+# acceptance of this Agreement by downloading the Software or by using the
+# Software until terminated as provided below.  
+
+# The Agreement automatically terminates without notice if you fail to comply
+# with any provision of this Agreement.  Licensee may terminate this Agreement
+# by ceasing using the Software.  Upon any termination of this Agreement,
+# Licensee will delete any and all copies of the Software. You agree that all
+# provisions which operate to protect the proprietary rights of Licensor shall
+# remain in force should breach occur and that the obligation of
+# confidentiality described in this Agreement is binding in perpetuity and, as
+# such, survives the term of the Agreement.
+
+# FEE: Provided Licensee abides completely by the terms and conditions of this
+# Agreement, there is no fee due to Licensor for Licensee's use of the
+# Software in accordance with this Agreement.
+
+# DISCLAIMER OF WARRANTIES:  THE SOFTWARE IS PROVIDED "AS-IS" WITHOUT WARRANTY
+# OF ANY KIND INCLUDING ANY WARRANTIES OF PERFORMANCE OR MERCHANTABILITY OR
+# FITNESS FOR A PARTICULAR USE OR PURPOSE OR OF NON- INFRINGEMENT.  LICENSEE
+# BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE SOFTWARE AND
+# RELATED MATERIALS.
+
+# SUPPORT AND MAINTENANCE: No Software support or training by the Licensor is
+# provided as part of this Agreement.  
+
+# EXCLUSIVE REMEDY AND LIMITATION OF LIABILITY: To the maximum extent
+# permitted under applicable law, Licensor shall not be liable for direct,
+# indirect, special, incidental, or consequential damages or lost profits
+# related to Licensee's use of and/or inability to use the Software, even if
+# Licensor is advised of the possibility of such damage.
+
+# EXPORT REGULATION: Licensee agrees to comply with any and all applicable
+# export control laws, regulations, and/or other laws related to embargoes and
+# sanction programs administered by law.
+
+# SEVERABILITY: If any provision(s) of this Agreement shall be held to be
+# invalid, illegal, or unenforceable by a court or other tribunal of competent
+# jurisdiction, the validity, legality and enforceability of the remaining
+# provisions shall not in any way be affected or impaired thereby.
+
+# NO IMPLIED WAIVERS: No failure or delay by Licensor in enforcing any right
+# or remedy under this Agreement shall be construed as a waiver of any future
+# or other exercise of such right or remedy by Licensor.
+
+# GOVERNING LAW: This Agreement shall be construed and enforced in accordance
+# with the laws of Germany without reference to conflict of laws principles.
+# You consent to the personal jurisdiction of the courts of this country and
+# waive their rights to venue outside of Germany.
+
+# ENTIRE AGREEMENT AND AMENDMENTS: This Agreement constitutes the sole and
+# entire agreement between Licensee and Licensor as to the matter set forth
+# herein and supersedes any previous agreements, understandings, and
+# arrangements between the parties relating hereto.
+
+import math
+from typing import Tuple, Optional, List, Mapping, Any, Union
+
 import torch
-from pydgn.evaluation.util import return_class_and_args
-from pydgn.model.interface import ModelInterface
-from pydgn.training.callback.optimizer import Optimizer
-from sklearn.metrics import accuracy_score
 from torch import sigmoid
-from torch.distributions import Normal
+from torch.distributions import Distribution
 from torch.nn import (
     ModuleList,
-    CrossEntropyLoss,
     Linear,
     Sequential,
-    ReLU,
     Tanh,
-    Softplus,
     Module,
+    CrossEntropyLoss,
 )
-from torch.nn.functional import softplus
-from torch.nn.parameter import Parameter
 from torch_geometric.data import Batch
 from torch_geometric.nn import global_add_pool, global_mean_pool, \
     global_max_pool
 
 from distribution import (
-    DiscretizedDistribution,
     TruncatedDistribution,
-    ContinuousDistribution,
     MixtureTruncated,
 )
-from util import (
-    count_parameters,
-    update_optimizer,
-    get_current_parameters,
-    add_new_params_to_optimizer,
-)
+from layer_generator import GIN_LayerGenerator
 
 
-class FilterNetwork(Module):
-    def __init__(self, input_features, output_features, config):
-        super(FilterNetwork, self).__init__()
-
-        self.config = config
+class MessageFilter(Module):
+    def __init__(self, input_features, hidden_dim, filter_type):
+        super(MessageFilter, self).__init__()
 
         self.input_features = input_features
-        self.output_features = output_features
-        self.hidden_dim = config["hidden_dim"]
+        self.hidden_dim = hidden_dim
 
-        self.filter_type = config["filter_messages"]
-
-        if self.filter_type == "input_features":
-            self.message_filter_hidden = Sequential(
-                Linear(input_features, self.hidden_dim), Tanh()
-            )
-            self.message_filter_output = Linear(self.hidden_dim, 1)
-        elif self.filter_type == "embedding-weight-sharing":
-            self.message_filter_input = Sequential(
-                Linear(input_features, self.hidden_dim), Tanh()
-            )
-
-            self.message_filter_hidden = Sequential(
-                Linear(self.hidden_dim, self.hidden_dim), Tanh()
-            )
-            self.message_filter_output = Linear(self.hidden_dim, 1)
-
-        elif self.filter_type == "embedding-no-weight-sharing":
-            self.message_filters = ModuleList(
-                [
-                    Sequential(
-                        Linear(input_features, self.hidden_dim),
-                        Tanh(),
-                        Linear(self.hidden_dim, 1),
-                    )
-                ]
-            )
-        else:
-            raise NotImplementedError("error, filter type not recognized")
+        self.filter_type = filter_type
+        self.message_filters = ModuleList(
+            [
+                Sequential(
+                    Linear(input_features, self.hidden_dim),
+                    Tanh(),
+                    Linear(self.hidden_dim, self.hidden_dim),
+                )
+            ]
+        )
 
     def to(self, device):
         """Set the device of the model."""
         super().to(device)
-
         self.device = device
 
-    def forward(self, current_state, current_layer=None):
-        if self.filter_type == "input_features":
-            tmp = self.message_filter_hidden(current_state)
-            return sigmoid(self.message_filter_output(tmp))
-        elif self.filter_type == "embedding-weight-sharing":
-            if current_layer == 0:
-                tmp = self.message_filter_input(current_state)
-            else:
-                tmp = self.message_filter_hidden(current_state)
-            return sigmoid(self.message_filter_output(tmp))
-        else:
-            assert current_layer is not None
-            return sigmoid(self.message_filters[current_layer](current_state))
+    def forward(self, current_state, current_layer):
+        return sigmoid(self.message_filters[current_layer](current_state))
 
     def add_one_layer_to_filter(self, torch_optimizer):
-
-        if self.filter_type in ["input_features", "embedding-weight-sharing"]:
-            old_nlayers = self.message_filter_output.out_features
-            old_w = self.message_filter_output.weight
-            old_b = self.message_filter_output.bias
-
-            optimized_params = get_current_parameters(self)
-
-            new_message_filter_output = Linear(
-                self.hidden_dim, old_nlayers + 1
-            ).to(self.device)
-            new_message_filter_output.weight.data[:old_nlayers] = old_w
-            new_message_filter_output.bias.data[:old_nlayers] = old_b
-
-            self.message_filter_output = new_message_filter_output
-
-            new_params = get_current_parameters(self)
-
-            if self.training:
-                update_optimizer(
-                    torch_optimizer, new_params, optimized_params, reset_state=True
-                )
+        if self.filter_type == "input_features":
+            # same logic of UDN
+            self.message_filters.append(
+                Sequential(
+                    Linear(self.input_features, self.hidden_dim),
+                    Tanh(),
+                    Linear(self.hidden_dim, self.hidden_dim),
+                ).to(self.device)
+            )
         else:
             # same logic of UDN
             self.message_filters.append(
                 Sequential(
                     Linear(self.hidden_dim, self.hidden_dim),
                     Tanh(),
-                    Linear(self.hidden_dim, 1),
+                    Linear(self.hidden_dim, self.hidden_dim),
                 ).to(self.device)
             )
 
-            if self.training and torch_optimizer is not None:
-                # update the meta information in the optimizer with the new params
-                torch_optimizer.param_groups[0]["params"].extend(
-                    self.message_filters[-1].parameters()
-                )
+        if self.training and torch_optimizer is not None:
+            # update the meta information in the optimizer with the new params
+            torch_optimizer.param_groups[0]["params"].extend(
+                self.message_filters[-1].parameters()
+            )
 
 
-class UnboundedDepthNetwork(ModelInterface):
+class AMP(Module):
     def __init__(
         self,
         dim_node_features: int,
-        dim_edge_features: int,
         dim_target: int,
-        readout_class: Callable[..., torch.nn.Module],
-        config: dict,
+        size_training_set: int,
+        filter_type: str,
+        layer_variational_distribution: Union[TruncatedDistribution, MixtureTruncated],
+        global_aggregation: bool,
+        task: str,
+        hidden_dim: int = 64,
+        quantile: float = 0.99,
+        layers_prior: Distribution = None,
+        theta_prior: float = None,
+        keep_all_layers: bool = False
     ):
-        super().__init__(
-            dim_node_features,
-            dim_edge_features,
-            dim_target,
-            readout_class,
-            config,
-        )
-        # to be set up later by the pydgn engine
+        super().__init__()
+
+        self.task = task
+
+        # hidden layer size
+        self.hidden_dim = hidden_dim
+
+        # to be set up later by the PyDGN engine
         self.torch_optimizer = None
 
         # to be set up after initialization of parameters
         self.current_depth = None
 
-        self.n_obs = config["n_observations"]
+        self.n_obs = size_training_set
 
         # store the quantile we want to use
-        self.quantile = config["quantile"]
+        self.quantile = quantile
 
-        # hidden layer size
-        self.hidden_dim = config["hidden_dim"]
-
-        # instantiate hidden and output layer generator
-        l_gen_cls, l_gen_args = return_class_and_args(
-            config, "layer_generator"
-        )
-        self.layer_generator = l_gen_cls(**l_gen_args)
+        # instantiate hidden and output layer generators
+        self.layer_generator = GIN_LayerGenerator()
         (
             self.hidden_generator,
             self.output_generator,
         ) = self.layer_generator.make_generators(
-            dim_node_features,
-            dim_edge_features,
-            self.hidden_dim,
-            dim_target,
-            **self.config
+            dim_node_features, self.hidden_dim, dim_target, global_aggregation
         )
 
         # these lists of layers will be dynamically updated
@@ -190,29 +278,7 @@ class UnboundedDepthNetwork(ModelInterface):
         # create the very first mapping from input to output
         self.output_layers = ModuleList([self.output_generator(layer_id=-1)])
 
-        t_dist_cls, t_dist_args = return_class_and_args(
-            config, "truncated_distribution"
-        )
-        if t_dist_cls == TruncatedDistribution:
-            truncated_dist = t_dist_cls(
-                truncation_quantile=self.quantile, **t_dist_args
-            )
-        elif t_dist_cls == MixtureTruncated:
-            list_distr = []
-            kwargs = {}
-
-            for k in t_dist_args.keys():
-                if "discretized_distribution" in k:
-                    list_distr.append({k: t_dist_args[k]})
-                else:
-                    kwargs[k] = t_dist_args[k]
-
-            truncated_dist = t_dist_cls(
-                truncation_quantile=self.quantile,
-                distribution_list=list_distr,
-                **kwargs
-            )
-        self.variational_L = truncated_dist
+        self.variational_L = layer_variational_distribution
 
         # # Instantiate the variational distribution q(\theta | \ell)
         # NOTE: not needed, see comment in forward method
@@ -221,37 +287,30 @@ class UnboundedDepthNetwork(ModelInterface):
         # self.variational_theta = q_theta_L
 
         # prior scale for p(theta) - we use a normal with mean 0
-        self.theta_prior_scale = config["theta_prior_scale"]
+        # If None, uninformative prior
+        self.theta_prior_scale = theta_prior
 
-        # prior mean and scale for p(ell)
+        # prior mean and scale for p(ell). If None, uninformative prior
+        self.layer_prior = layers_prior
 
-        l_prior_cls, l_prior_args = return_class_and_args(
-            config, "layer_prior"
-        )
-        if l_prior_cls is not None:
-            self.layer_prior = l_prior_cls(**l_prior_args)
-        else:
-            # uninformative prior
-            self.layer_prior = None
+        self.filter_messages = filter_type
 
-        self.filter_messages = config.get("filter_messages", None)
-
-        if self.filter_messages:
-            self.filter_network = FilterNetwork(dim_node_features, 1, config)
-        else:
+        if self.filter_messages is not None:
+            self.filter_network = MessageFilter(
+                dim_node_features, hidden_dim, filter_type
+            )
+        else:  # no filtering
             self.filter_network = None
 
-        self.return_fake_embeddings = config.get(
-            "return_fake_embeddings", False
-        )
+        self.keep_all_layers = keep_all_layers
 
-        self.global_aggregation = self.config.get('global_aggregation', False)
+        self.global_aggregation = global_aggregation
 
         self.device = None
 
     def to(self, device):
         """Set the device of the model."""
-        super(UnboundedDepthNetwork, self).to(device)
+        super(AMP, self).to(device)
 
         self.device = device
 
@@ -259,9 +318,10 @@ class UnboundedDepthNetwork(ModelInterface):
             self.filter_network.to(device)
         self.variational_L.to(device)
 
-    def load_state_dict(
-        self, state_dict: Mapping[str, Any], strict: bool = True
-    ):
+    def load_state_dict(self, state_dict: Mapping[str, Any], strict: bool = True):
+        """
+        Iteratively tries to match the right amount of layers with the checkpoint
+        """
         max_l = 10000
 
         if self.current_depth is None:
@@ -282,14 +342,14 @@ class UnboundedDepthNetwork(ModelInterface):
         if i == max_l:
             raise Exception("Something went wrong with checkpointing")
 
-        # print(f'Checkpoint loaded, {self.current_depth} layers')
+        print(f"Checkpoint loaded, {self.current_depth} layers")
 
     def update_depth(self, force_depth: int = -1):
         """
         Compute the current maximal depth of the variational
         posterior q(L) and create new layers if needed.
 
-        Adapted from original paper (see header above)
+        Adapted from Nazaret and Blei's paper (ICML 2022)
         """
         assert self.device is not None, "Device has not been set"
 
@@ -326,20 +386,22 @@ class UnboundedDepthNetwork(ModelInterface):
                     self.output_layers[-1].parameters()
                 )
 
-            # ADAPTATION OF MESSAGE FILTER LAST LAYER
-            # see https://avalanche-api.continualai.org/en/v0.4.0/_modules/avalanche/models/dynamic_modules.html#IncrementalClassifier
             if self.filter_messages:
-                self.filter_network.add_one_layer_to_filter(
-                    self.torch_optimizer
-                )
+                self.filter_network.add_one_layer_to_filter(self.torch_optimizer)
 
-    def set_optimizer(self, optimizer: Optimizer):
+        if self.current_depth < len(self.hidden_layers):
+            if not self.keep_all_layers:
+                # remove all extra layers but for an extra one
+                # note: different from AMP paper but memory efficient
+                self.hidden_layers = self.hidden_layers[:self.current_depth + 2]
+                self.output_layers = self.output_layers[:self.current_depth + 2]
+
+    def set_optimizer(self, optimizer):
         """
         Set the optimizer to later add the dynamically created
            layers' parameters to it.
         """
-        # recover torch Optimizer object from pydgn one
-        self.torch_optimizer = optimizer.optimizer
+        self.torch_optimizer = optimizer
 
     def get_q_ell_named_parameters(self) -> dict:
         return self.variational_L.get_q_ell_named_parameters()
@@ -349,51 +411,61 @@ class UnboundedDepthNetwork(ModelInterface):
         hidden_layer,
         current_state,
         edge_index,
-        edge_attr,
         edge_msg_filter,
-        data,
         layer_id,
     ):
-        raise NotImplementedError("To be implemented in a subclass")
+        assert layer_id > 0
+
+        if layer_id == 1:
+            return hidden_layer(current_state)
+        else:
+            return hidden_layer(current_state, edge_index, edge_msg_filter)
 
     def _output_forward(
         self,
         output_layer,
         current_state,
-        edge_index,
-        edge_attr,
         data,
-        layer_id,
     ):
-        raise NotImplementedError("To be implemented in a subclass")
+        if self.global_aggregation:
+            tmp_output = torch.cat(
+                [
+                    global_add_pool(current_state, data.batch),
+                    global_max_pool(current_state, data.batch),
+                    global_mean_pool(current_state, data.batch),
+                ],
+                dim=1,
+            )
+        else:
+            tmp_output = current_state
+
+        return output_layer(tmp_output)
 
     def forward(
-        self, data: Batch
+        self, data: Batch, retain_grad=False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[List[object]]]:
         # first, determine if new layers have to be added
         self.update_depth()
 
+        x, edge_index, edge_attr, batch = (
+            data.x.float(),
+            data.edge_index,
+            data.edge_attr,
+            data.batch,
+        )
+
         # computes probability vector of variational distr. q(layer)
         qL_probs = self.variational_L.compute_probability_vector()
-
-        current_state = data.x
-        edge_index = data.edge_index
-        edge_attr = data.edge_attr
 
         # ---- COMPUTE MESSAGE FILTERING DISTRIBUTION --- #
 
         message_filters_list = []
 
-        # next message will be remodulated when propagated to neighbors
-        if self.filter_messages == "input_features":
-            message_filters = self.filter_network(
-                current_state
-            )  # nodes x m(q)
+        # necessary to apply the filter network in the case of
+        # 'input_features'
+        first_state = x
 
-            # bound to number of active layers
-            message_filters = message_filters[:, : qL_probs.shape[0]]
-
-            message_filters_list.append(message_filters)
+        current_state = x
 
         # ----------------------------------------------- #
 
@@ -417,50 +489,46 @@ class UnboundedDepthNetwork(ModelInterface):
             # ---- COMPUTE MESSAGE FILTERING DISTRIBUTION --- #
 
             # next message will be remodulated when propagated to neighbors
-            if self.filter_network is not None:
-                if l > 0 and self.filter_messages == "embedding-no-weight-sharing":
+            if self.filter_network is not None and l > 0:
+                if self.filter_messages == "input_features":
+                    message_filters = self.filter_network(
+                        first_state, l - 1
+                    )  # nodes x m(q)
+                else:
                     message_filters = self.filter_network(
                         current_state, l - 1
                     )  # nodes x m(q)
 
-                    # bound to number of active layers
-                    message_filters = message_filters[:, : qL_probs.shape[0]]
-                    # print(f'layer {l}')
-                    # print(message_filters)
-                    message_filters_list.append(message_filters)
+                # message_filters_list.append(message_filters)
 
             # ----------------------------------------------- #
 
             # NOTE: assuming source_to_target flow of messages
-            if self.filter_network is not None:
-                if l > 0 and self.filter_messages:
-                    if self.filter_messages not in ["embedding-no-weight-sharing"]:
-                        edge_msg_filter = message_filters[:, l][edge_index[0]]
-                    else:
-                        assert message_filters.shape[1] == 1, message_filters.shape
-                        edge_msg_filter = message_filters[:, 0][edge_index[0]]
-                else:
-                    edge_msg_filter = None
+            if self.filter_network is not None and l > 0:
+                # assert message_filters.shape[1] == 1, message_filters.shape
+                edge_msg_filter = message_filters[edge_index[0]]
             else:
                 edge_msg_filter = None
 
             # computes log(p(theta)) for the hidden layers
             # assuming mu = 0 and a first order approximation
             if l > 0:
-                # i-1 because we always have the first additional input layer
                 hidden_layer = self.hidden_layers[l - 1]
+
+                # i-1 because we always have the first additional input layer
+                if retain_grad:
+                    current_state.retain_grad()
+
                 current_state = self._hidden_forward(
                     hidden_layer,
                     current_state,
                     edge_index,
-                    edge_attr,
                     edge_msg_filter,
-                    data,
                     l,
                 )
+
                 # log_p_theta_hidden = sum([self.prior_theta.log_prob(p).sum() for p in hidden_layer.parameters()])
                 if self.theta_prior_scale is not None:
-
                     log_p_theta_hidden = sum(
                         [
                             -(p**2).sum() / 2 / (self.theta_prior_scale**2)
@@ -491,48 +559,21 @@ class UnboundedDepthNetwork(ModelInterface):
 
             # compute log(p(ell))
             if self.layer_prior is not None and l > 0.0:
-                log_p_L = self.layer_prior.log_prob(
-                    torch.tensor([l - 1.0])
-                ).to(self.device)
+                log_p_L = self.layer_prior.log_prob(torch.tensor([l - 1.0])).to(
+                    self.device
+                )
             else:
                 log_p_L = torch.zeros(1).to(self.device)
 
             # compound hidden prior probs of each layer
             # due to the double summation
             log_theta_hidden_cumulative += log_p_theta_hidden
-
-            # This was commented in the original code (possibly) because the
-            # weights in UDN are shared for the output (same parameters for all
-            # output layers)?.,
             log_theta_output_cumulative += log_p_theta_output
 
-            # FIXME This is what happens in UDN paper, does not make sense to me
-            # if qL_probs[l] != 0:
-            #     current_output = self._output_forward(
-            #         output_layer,
-            #         current_state,
-            #         edge_index,
-            #         edge_attr,
-            #         data,
-            #         l
-            #     )
-            # else:
-            #     # Base case of first layer (at least according to original paper)
-            #     # No weight on this layer, we compute just for inspection; no gradient to propagate
-            #     current_output = self._output_forward(
-            #         output_layer,
-            #         current_state.detach(),
-            #         edge_index,
-            #         edge_attr,
-            #         data,
-            #         l
-            #     )
-            current_output = self._output_forward(
-                output_layer, current_state, edge_index, edge_attr, data, l
-            )
+            current_output = self._output_forward(output_layer, current_state, data)
 
-            if l > 0 and not self.return_fake_embeddings:
-                hidden_state_list.append(current_state)
+            # if l > 0:
+            #     hidden_state_list.append(current_state)
             output_state_list.append(current_output)
             log_p_theta_hidden_list.append(log_theta_hidden_cumulative.clone())
 
@@ -547,128 +588,167 @@ class UnboundedDepthNetwork(ModelInterface):
         # compute -\sum_ell q(ell)log(q(ell)
         # pass (un)normalized log probabilities
         entropy_qL = (
-            torch.distributions.Categorical(probs=qL_probs[1:])
-            .entropy()
-            .unsqueeze(0)
+            torch.distributions.Categorical(probs=qL_probs[1:]).entropy().unsqueeze(0)
         )  # shape [1]
 
-        # Create batches
-        # do not keep the intermediate state list because with resnet the
-        # dimensions change across layers
-        if l > 0 and not self.return_fake_embeddings:
-            hidden_state_list = torch.stack(
-                hidden_state_list, dim=1
-            )  # ? x depth
         output_state_list = torch.stack(output_state_list, dim=1)  # ? x depth
 
         log_p_theta_hidden_list = torch.stack(
             log_p_theta_hidden_list, dim=1
         )  # 1 x depth
+
         log_p_theta_output_list = torch.stack(
             log_p_theta_output_list, dim=1
         )  # 1 x depth
+
         log_p_L_list = torch.stack(log_p_L_list, dim=1)  # 1 x depth
+
         qL_probs = qL_probs.unsqueeze(0)  # 1 x depth
 
-        if self.filter_messages is not None:
-            message_filters_list = torch.stack(message_filters_list, dim=1)
-        else:
-            message_filters_list = None
+        # if self.filter_network is not None:
+        #     message_filters_list = torch.stack(message_filters_list, dim=1)
+        # else:
+        #     message_filters_list = None
+
+        if self.task == "classification":
+            elbo_fun = self._compute_classification
+        elif self.task == "regression_mse":
+            elbo_fun = self._compute_regression_mse
+        elif self.task == "regression_mae":
+            elbo_fun = self._compute_regression_mae
+
+        elbo = elbo_fun(
+            output_state_list,
+            data.y,
+            log_p_theta_hidden_list,
+            log_p_theta_output_list,
+            log_p_L_list,
+            qL_probs,
+            entropy_qL,
+        )
+
+        # Weight predictions at each layer
+        # pred = (output_state * qL_log_probs.exp().unsqueeze(2)).sum(1)
+        pred = (output_state_list * qL_probs.unsqueeze(2)).sum(1)
 
         return (
-            output_state_list,  # num_nodes x layers x target_dimension
-            hidden_state_list   # num_nodes x layers x dim_embedding
-            if not self.return_fake_embeddings
-            else torch.zeros(output_state_list.shape[0], 1),
-            (
-                data.batch,
-                log_p_theta_hidden_list,
-                log_p_theta_output_list,
-                log_p_L_list,
-                entropy_qL,
-                qL_probs,  # 1 x layers   (output_state_list*(ql_probs.unsqueeze(2)) ).sum(1)
-                self.n_obs,
-                message_filters_list
-            ),
+            pred,
+            elbo,
         )
 
-
-class UDN_FlatInput(UnboundedDepthNetwork):
-    def _hidden_forward(
+    def _compute_classification(
         self,
-        hidden_layer,
-        current_state,
-        edge_index,
-        edge_attr,
-        _,
-        data,
-        layer_id,
+        output_state,
+        targets,
+        log_p_theta_hidden,
+        log_p_theta_output,
+        log_p_L,
+        qL_probs,
+        entropy_qL,
     ):
-        return hidden_layer(current_state)
+        # maximize log p y given x
+        log_p_y_list = [
+            -CrossEntropyLoss(reduction="mean")(
+                output_state[:, i, :], targets
+            ).unsqueeze(0)
+            * self.n_obs
+            for i in range(output_state.shape[1])
+        ]
 
-    def _output_forward(
+        log_p_y = torch.stack(log_p_y_list, dim=1)
+
+        # (weighted) mean over layers
+        elbo = log_p_y
+        elbo += log_p_theta_hidden
+        elbo += log_p_theta_output
+        elbo += log_p_L
+
+        elbo *= qL_probs
+
+        elbo = elbo.sum(1)
+        elbo += entropy_qL
+        elbo = elbo / self.n_obs
+
+        return -elbo.mean(0)
+
+    def _compute_regression_mse(
         self,
-        output_layer,
-        current_state,
-        edge_index,
-        edge_attr,
-        data,
-        layer_id,
+        output_state,
+        targets,
+        log_p_theta_hidden,
+        log_p_theta_output,
+        log_p_L,
+        qL_probs,
+        entropy_qL,
     ):
-        return output_layer(current_state)
+        two = torch.Tensor([2.0]).to(targets.device)
+        pi = torch.Tensor([math.pi]).to(targets.device)
 
+        if len(targets.shape) == 1:
+            targets = targets.unsqueeze(1)
 
-class AMP(UnboundedDepthNetwork):
-    def __init__(
+        if len(output_state.shape) == 2:
+            output_state = output_state.unsqueeze(2)
+
+        # maximize log p y given x (gaussian nll with variance 1)
+        log_p_y_list = [
+            (-torch.mean(((output_state[:, i, :] - targets) ** 2).sum(1)) / two)
+            * self.n_obs  # - torch.log(two * pi) / two
+            for i in range(output_state.shape[1])
+        ]
+
+        log_p_y = torch.stack(log_p_y_list, dim=1)
+
+        # (weighted) mean over layers
+        elbo = log_p_y
+        elbo += log_p_theta_hidden
+        elbo += log_p_theta_output
+        elbo += log_p_L
+
+        elbo *= qL_probs
+
+        elbo = elbo.sum(1)
+        elbo += entropy_qL
+        elbo = elbo / self.n_obs
+
+        return -elbo.mean(0)
+
+    def _compute_regression_mae(
         self,
-        dim_node_features: int,
-        dim_edge_features: int,
-        dim_target: int,
-        readout_class: Callable[..., torch.nn.Module],
-        config: dict,
+        output_state,
+        targets,
+        log_p_theta_hidden,
+        log_p_theta_output,
+        log_p_L,
+        qL_probs,
+        entropy_qL,
     ):
-        super().__init__(
-            dim_node_features,
-            dim_edge_features,
-            dim_target,
-            readout_class,
-            config,
-        )
+        if len(targets.shape) == 1:
+            targets = targets.unsqueeze(1)
 
-    def _hidden_forward(
-        self,
-        hidden_layer,
-        current_state,
-        edge_index,
-        edge_attr,
-        edge_msg_filter,
-        data,
-        layer_id,
-    ):
-        assert layer_id > 0
+        if len(output_state.shape) == 2:
+            output_state = output_state.unsqueeze(2)
 
-        if layer_id == 1:
-            return hidden_layer(current_state)
-        else:
-            return hidden_layer(
-                current_state, edge_index, edge_attr, edge_msg_filter
-            )
+        one = torch.Tensor([1.0]).to(targets.device)
 
-    def _output_forward(
-        self,
-        output_layer,
-        current_state,
-        edge_index,
-        edge_attr,
-        data,
-        layer_id,
-    ):
-        if self.global_aggregation:
-            tmp_output = torch.cat(
-                [global_add_pool(current_state, data.batch),
-                 global_max_pool(current_state, data.batch),
-                 global_mean_pool(current_state, data.batch)], dim=1)
-        else:
-            tmp_output = current_state
+        # maximize -MAE
+        log_p_y_list = [
+            (-torch.mean((torch.abs(output_state[:, i, :] - targets)).sum(1)) / one)
+            * self.n_obs
+            for i in range(output_state.shape[1])
+        ]
 
-        return output_layer(tmp_output)
+        log_p_y = torch.stack(log_p_y_list, dim=1)
+
+        # (weighted) mean over layers
+        elbo = log_p_y
+        elbo += log_p_theta_hidden
+        elbo += log_p_theta_output
+        elbo += log_p_L
+
+        elbo *= qL_probs
+
+        elbo = elbo.sum(1)
+        elbo += entropy_qL
+        elbo = elbo / self.n_obs
+        return -elbo.mean(0)

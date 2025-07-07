@@ -1,106 +1,179 @@
-from collections import OrderedDict
+#   Adaptive Message Passing
+	
+#   Authors: Federico Errica (Federico.Errica@neclab.eu) 
+#            Henrik Christiansen (Henrik.Christiansen@neclab.eu)
+# 	    Viktor Zaverkin (Viktor.Zaverkin@neclab.eu)
+#   	    Takashi Maruyama (Takashi.Maruyama@neclab.eu)
+#  	    Mathias Niepert (mathias.niepert@ki.uni-stuttgart.de)
+#  	    Francesco Alesiani (Francesco.Alesiani @neclab.eu)
+  
+#   Files:    
+#             distribution.py, 
+#             layer_generator.py, 
+#             model.py, 
+#             util.py,
+#             example.py 
+            
+# NEC Laboratories Europe GmbH, Copyright (c) 2025-, All rights reserved.  
+
+#        THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
+ 
+#        PROPRIETARY INFORMATION ---  
+
+# SOFTWARE LICENSE AGREEMENT
+
+# ACADEMIC OR NON-PROFIT ORGANIZATION NONCOMMERCIAL RESEARCH USE ONLY
+
+# BY USING OR DOWNLOADING THE SOFTWARE, YOU ARE AGREEING TO THE TERMS OF THIS
+# LICENSE AGREEMENT.  IF YOU DO NOT AGREE WITH THESE TERMS, YOU MAY NOT USE OR
+# DOWNLOAD THE SOFTWARE.
+
+# This is a license agreement ("Agreement") between your academic institution
+# or non-profit organization or self (called "Licensee" or "You" in this
+# Agreement) and NEC Laboratories Europe GmbH (called "Licensor" in this
+# Agreement).  All rights not specifically granted to you in this Agreement
+# are reserved for Licensor. 
+
+# RESERVATION OF OWNERSHIP AND GRANT OF LICENSE: Licensor retains exclusive
+# ownership of any copy of the Software (as defined below) licensed under this
+# Agreement and hereby grants to Licensee a personal, non-exclusive,
+# non-transferable license to use the Software for noncommercial research
+# purposes, without the right to sublicense, pursuant to the terms and
+# conditions of this Agreement. NO EXPRESS OR IMPLIED LICENSES TO ANY OF
+# LICENSOR'S PATENT RIGHTS ARE GRANTED BY THIS LICENSE. As used in this
+# Agreement, the term "Software" means (i) the actual copy of all or any
+# portion of code for program routines made accessible to Licensee by Licensor
+# pursuant to this Agreement, inclusive of backups, updates, and/or merged
+# copies permitted hereunder or subsequently supplied by Licensor,  including
+# all or any file structures, programming instructions, user interfaces and
+# screen formats and sequences as well as any and all documentation and
+# instructions related to it, and (ii) all or any derivatives and/or
+# modifications created or made by You to any of the items specified in (i).
+
+# CONFIDENTIALITY/PUBLICATIONS: Licensee acknowledges that the Software is
+# proprietary to Licensor, and as such, Licensee agrees to receive all such
+# materials and to use the Software only in accordance with the terms of this
+# Agreement.  Licensee agrees to use reasonable effort to protect the Software
+# from unauthorized use, reproduction, distribution, or publication. All
+# publication materials mentioning features or use of this software must
+# explicitly include an acknowledgement the software was developed by NEC
+# Laboratories Europe GmbH.
+
+# COPYRIGHT: The Software is owned by Licensor.  
+
+# PERMITTED USES:  The Software may be used for your own noncommercial
+# internal research purposes. You understand and agree that Licensor is not
+# obligated to implement any suggestions and/or feedback you might provide
+# regarding the Software, but to the extent Licensor does so, you are not
+# entitled to any compensation related thereto.
+
+# DERIVATIVES: You may create derivatives of or make modifications to the
+# Software, however, You agree that all and any such derivatives and
+# modifications will be owned by Licensor and become a part of the Software
+# licensed to You under this Agreement.  You may only use such derivatives and
+# modifications for your own noncommercial internal research purposes, and you
+# may not otherwise use, distribute or copy such derivatives and modifications
+# in violation of this Agreement.
+
+# BACKUPS:  If Licensee is an organization, it may make that number of copies
+# of the Software necessary for internal noncommercial use at a single site
+# within its organization provided that all information appearing in or on the
+# original labels, including the copyright and trademark notices are copied
+# onto the labels of the copies.
+
+# USES NOT PERMITTED:  You may not distribute, copy or use the Software except
+# as explicitly permitted herein. Licensee has not been granted any trademark
+# license as part of this Agreement.  Neither the name of NEC Laboratories
+# Europe GmbH nor the names of its contributors may be used to endorse or
+# promote products derived from this Software without specific prior written
+# permission.
+
+# You may not sell, rent, lease, sublicense, lend, time-share or transfer, in
+# whole or in part, or provide third parties access to prior or present
+# versions (or any parts thereof) of the Software.
+
+# ASSIGNMENT: You may not assign this Agreement or your rights hereunder
+# without the prior written consent of Licensor. Any attempted assignment
+# without such consent shall be null and void.
+
+# TERM: The term of the license granted by this Agreement is from Licensee's
+# acceptance of this Agreement by downloading the Software or by using the
+# Software until terminated as provided below.  
+
+# The Agreement automatically terminates without notice if you fail to comply
+# with any provision of this Agreement.  Licensee may terminate this Agreement
+# by ceasing using the Software.  Upon any termination of this Agreement,
+# Licensee will delete any and all copies of the Software. You agree that all
+# provisions which operate to protect the proprietary rights of Licensor shall
+# remain in force should breach occur and that the obligation of
+# confidentiality described in this Agreement is binding in perpetuity and, as
+# such, survives the term of the Agreement.
+
+# FEE: Provided Licensee abides completely by the terms and conditions of this
+# Agreement, there is no fee due to Licensor for Licensee's use of the
+# Software in accordance with this Agreement.
+
+# DISCLAIMER OF WARRANTIES:  THE SOFTWARE IS PROVIDED "AS-IS" WITHOUT WARRANTY
+# OF ANY KIND INCLUDING ANY WARRANTIES OF PERFORMANCE OR MERCHANTABILITY OR
+# FITNESS FOR A PARTICULAR USE OR PURPOSE OR OF NON- INFRINGEMENT.  LICENSEE
+# BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE SOFTWARE AND
+# RELATED MATERIALS.
+
+# SUPPORT AND MAINTENANCE: No Software support or training by the Licensor is
+# provided as part of this Agreement.  
+
+# EXCLUSIVE REMEDY AND LIMITATION OF LIABILITY: To the maximum extent
+# permitted under applicable law, Licensor shall not be liable for direct,
+# indirect, special, incidental, or consequential damages or lost profits
+# related to Licensee's use of and/or inability to use the Software, even if
+# Licensor is advised of the possibility of such damage.
+
+# EXPORT REGULATION: Licensee agrees to comply with any and all applicable
+# export control laws, regulations, and/or other laws related to embargoes and
+# sanction programs administered by law.
+
+# SEVERABILITY: If any provision(s) of this Agreement shall be held to be
+# invalid, illegal, or unenforceable by a court or other tribunal of competent
+# jurisdiction, the validity, legality and enforceability of the remaining
+# provisions shall not in any way be affected or impaired thereby.
+
+# NO IMPLIED WAIVERS: No failure or delay by Licensor in enforcing any right
+# or remedy under this Agreement shall be construed as a waiver of any future
+# or other exercise of such right or remedy by Licensor.
+
+# GOVERNING LAW: This Agreement shall be construed and enforced in accordance
+# with the laws of Germany without reference to conflict of laws principles.
+# You consent to the personal jurisdiction of the courts of this country and
+# waive their rights to venue outside of Germany.
+
+# ENTIRE AGREEMENT AND AMENDMENTS: This Agreement constitutes the sole and
+# entire agreement between Licensee and Licensor as to the matter set forth
+# herein and supersedes any previous agreements, understandings, and
+# arrangements between the parties relating hereto.
+
 from typing import Callable, Tuple, Optional
 
 import torch
-from torch import nn, relu, Tensor, tanh
-from torch.nn import Sequential, Linear, ReLU, LeakyReLU, Module, ModuleList, \
-    Dropout, GELU
-from torch_geometric.nn import GINConv, GCNConv, GINEConv, ResGatedGraphConv
-from torch_geometric.nn.conv.gcn_conv import gcn_norm
+from torch import Tensor
+from torch.nn import Sequential, Linear, LeakyReLU
+from torch_geometric.nn import GINConv
 from torch_geometric.typing import OptPairTensor
-from torch_sparse import SparseTensor
-
-from adgn import AntiSymmetricConv
 
 
 class EdgeFilterGINConv(GINConv):
-
     def forward(
         self,
         x: torch.Tensor,
         edge_index: torch.Tensor,
-        edge_weight: Optional[torch.Tensor] = None,
         edge_filter: Optional[torch.Tensor] = None,
-        size = None,
-        activation=torch.nn.functional.tanh
+        size=None,
+        activation=torch.nn.functional.tanh,
     ) -> torch.Tensor:
-
         if isinstance(x, Tensor):
             x: OptPairTensor = (x, x)
 
-        # propagate_type: (x: OptPairTensor)
-        out = self.propagate(edge_index, x=x,
-                             edge_weight=edge_weight,
-                             edge_filter=edge_filter,
-                             size=None)
-
-        x_r = x[1]
-        if x_r is not None:
-            out = out + (1 + self.eps) * x_r
-
-        return activation(self.nn(out))
-
-    # def message(
-    #     self,
-    #     x_j: torch.Tensor,
-    #     edge_weight: Optional[torch.Tensor] = None,
-    #     edge_filter: Optional[torch.Tensor] = None,
-    # ) -> torch.Tensor:
-    #
-    #     # backward compatibility
-    #     if edge_filter is not None and len(edge_filter.shape) == 1:
-    #         edge_filter = edge_filter.view(-1, 1)
-    #
-    #     if edge_filter is not None:
-    #         return edge_filter * x_j
-    #     else:
-    #         return x_j
-
-    def message(
-        self,
-        x_j: torch.Tensor,
-        edge_weight: Optional[torch.Tensor] = None,
-        edge_filter: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
-
-        # backward compatibility
-        if edge_filter is not None and len(edge_filter.shape) == 1:
-            edge_filter = edge_filter.view(-1, 1)
-
-        if edge_weight is None and edge_filter is not None:
-            return edge_filter * x_j
-
-        elif edge_weight is None and edge_filter is None:
-            return x_j
-
-        elif edge_weight is not None and edge_filter is None:
-            return edge_weight.view(-1, 1) * x_j
-
-        else:
-            return edge_filter * edge_weight.view(-1, 1) * x_j
-
-
-
-class EdgeFilterGINEConv(GINEConv):
-
-    def forward(
-        self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-        edge_weight: Optional[torch.Tensor] = None,
-        edge_filter: Optional[torch.Tensor] = None,
-        size = None,
-        activation=torch.nn.functional.tanh
-    ) -> torch.Tensor:
-
-        if isinstance(x, Tensor):
-            x: OptPairTensor = (x, x)
-
-        # propagate_type: (x: OptPairTensor)
-        out = self.propagate(edge_index, x=x,
-                             edge_weight=edge_weight,
-                             edge_filter=edge_filter,
-                             size=None)
+        # propagate_type: (x: OptPairTensor, edge_filter: OptTensor)
+        out = self.propagate(edge_index, x=x, edge_filter=edge_filter, size=None)
 
         x_r = x[1]
         if x_r is not None:
@@ -111,634 +184,56 @@ class EdgeFilterGINEConv(GINEConv):
     def message(
         self,
         x_j: torch.Tensor,
-        edge_weight: Optional[torch.Tensor] = None,
         edge_filter: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
+        return edge_filter * x_j
 
-        if self.lin is not None:
-            edge_weight = self.lin(edge_weight.float())
 
-        # backward compatibility
-        if edge_filter is not None and len(edge_filter.shape) == 1:
-            edge_filter = edge_filter.view(-1, 1)
-
-        if edge_weight is None and edge_filter is not None:
-            return edge_filter * x_j
-
-        elif edge_weight is None and edge_filter is None:
-            return x_j
-
-        elif edge_weight is not None and edge_filter is None:
-            return edge_weight + x_j
-        else:
-            return edge_filter * (edge_weight + x_j)
-
-
-class EdgeFilterGatedGCNConv(ResGatedGraphConv):
-
-    def forward(
-        self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-        edge_weight: Optional[torch.Tensor] = None,
-        edge_filter: Optional[torch.Tensor] = None,
-        size = None,
-        activation=torch.nn.functional.tanh
-    ) -> torch.Tensor:
-
-        if isinstance(x, Tensor):
-            x = (x, x)
-
-        k = self.lin_key(x[1])
-        q = self.lin_query(x[0])
-        v = self.lin_value(x[0])
-
-        # propagate_type: (k: Tensor, q: Tensor, v: Tensor)
-        out = self.propagate(edge_index, k=k, q=q, v=v,
-                             edge_weight=None,
-                             edge_filter=edge_filter)
-
-        if self.root_weight:
-            out = out + self.lin_skip(x[1])
-
-        if self.bias is not None:
-            out = out + self.bias
-
-        return activation(out)
-
-    # def message(
-    #     self,
-    #     k_i: Tensor,
-    #     q_j: Tensor,
-    #     v_j: Tensor,
-    #     edge_weight: Optional[torch.Tensor] = None,
-    #     edge_filter: Optional[torch.Tensor] = None,
-    # ) -> torch.Tensor:
-    #
-    #     x_j = self.act(k_i + q_j) * v_j  # the node message
-    #
-    #     # backward compatibility
-    #     if edge_filter is not None and len(edge_filter.shape) == 1:
-    #         edge_filter = edge_filter.view(-1, 1)
-    #
-    #     if edge_filter is not None:
-    #         return edge_filter * x_j
-    #     else:
-    #         return x_j
-
-    def message(
-        self,
-        k_i: Tensor,
-        q_j: Tensor,
-        v_j: Tensor,
-        edge_weight: Optional[torch.Tensor] = None,
-        edge_filter: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
-
-        x_j = self.act(k_i + q_j) * v_j  # the node message
-
-        # backward compatibility
-        if edge_filter is not None and len(edge_filter.shape) == 1:
-            edge_filter = edge_filter.view(-1, 1)
-
-        if edge_weight is None and edge_filter is not None:
-            return edge_filter * x_j
-
-        elif edge_weight is None and edge_filter is None:
-            return x_j
-        elif edge_weight is not None and edge_filter is None:
-            return edge_weight.view(-1, 1) * x_j
-
-        else:
-            return edge_filter * edge_weight.view(-1, 1) * x_j
-
-
-
-class EdgeFilterGCNConv(GCNConv):
-
-    def forward(
-        self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-        edge_weight: Optional[torch.Tensor] = None,
-        edge_filter: Optional[torch.Tensor] = None,
-        activation=torch.nn.functional.tanh
-    ) -> torch.Tensor:
-
-        if self.normalize:
-            if isinstance(edge_index, Tensor):
-                cache = self._cached_edge_index
-                if cache is None:
-                    edge_index, edge_weight = gcn_norm(  # yapf: disable
-                        edge_index, edge_weight, x.size(self.node_dim),
-                        self.improved, self.add_self_loops, self.flow,
-                        x.dtype)
-                    if self.cached:
-                        self._cached_edge_index = (edge_index, edge_weight)
-                else:
-                    edge_index, edge_weight = cache[0], cache[1]
-
-            elif isinstance(edge_index, SparseTensor):
-                cache = self._cached_adj_t
-                if cache is None:
-                    edge_index = gcn_norm(  # yapf: disable
-                        edge_index, edge_weight, x.size(self.node_dim),
-                        self.improved, self.add_self_loops, self.flow,
-                        x.dtype)
-                    if self.cached:
-                        self._cached_adj_t = edge_index
-                else:
-                    edge_index = cache
-
-        x = self.lin(x)
-
-        # propagate_type: (x: Tensor, edge_weight: OptTensor)
-        out = self.propagate(edge_index, x=x,
-                             edge_weight=edge_weight,
-                             edge_filter=edge_filter,
-                             size=None)
-
-        if self.bias is not None:
-            out = out + self.bias
-
-        return activation(out)
-
-    def message(
-        self,
-        x_j: torch.Tensor,
-        edge_weight: Optional[torch.Tensor] = None,
-        edge_filter: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
-
-        # backward compatibility
-        if edge_filter is not None and len(edge_filter.shape) == 1:
-            edge_filter = edge_filter.view(-1, 1)
-
-        if edge_weight is None and edge_filter is not None:
-            return edge_filter * x_j
-
-        elif edge_weight is None and edge_filter is None:
-            return x_j
-
-        elif edge_weight is not None and edge_filter is None:
-            return edge_weight.view(-1, 1) * x_j
-
-        else:
-            return edge_filter * edge_weight.view(-1, 1) * x_j
-
-
-
-class BottleneckCNN(nn.Module):
-    """Construction block for the CNN"""
-
-    expansion = 4
-
-    def __init__(self, in_channels, out_channels, stride=1, residual=True):
-        super().__init__()
-        self.conv1 = nn.Conv2d(
-            in_channels, out_channels, kernel_size=1, bias=False
-        )
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(
-            out_channels,
-            out_channels,
-            kernel_size=3,
-            stride=stride,
-            padding=1,
-            bias=False,
-        )
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.conv3 = nn.Conv2d(
-            out_channels,
-            self.expansion * out_channels,
-            kernel_size=1,
-            bias=False,
-        )
-        self.bn3 = nn.BatchNorm2d(self.expansion * out_channels)
-
-        self.is_residual = residual
-        self.shortcut = nn.Sequential()
-        if (
-            stride != 1 or in_channels != self.expansion * out_channels
-        ) and self.is_residual:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(
-                    in_channels,
-                    self.expansion * out_channels,
-                    kernel_size=1,
-                    stride=stride,
-                    bias=False,
-                ),
-                nn.BatchNorm2d(self.expansion * out_channels),
-            )
-
-    def forward(self, x):
-        out = relu(self.bn1(self.conv1(x)))
-        out = relu(self.bn2(self.conv2(out)))
-        out = self.bn3(self.conv3(out))
-        if self.is_residual:
-            out += self.shortcut(x)
-        out = relu(out)
-        return out
-
-
-class LayerGenerator:
-    def __init__(self, **kwargs):
-        super(LayerGenerator, self).__init__()
-
-    def make_generators(
-        self, node_size, edge_size, hidden_size, output_size, **kwargs
-    ) -> Tuple[Callable, Callable]:
-        """
-        Creates two hidden and output layer generators using the
-        provided parameters. They both accept a layer id. If the layer id is 0,
-        it is assumed that we are generating the layers for the input
-        """
-        raise NotImplementedError("To be implemented in a sub-class")
-
-
-class CifarGenerator(LayerGenerator):
-    """Adapted from UDN paper's source code"""
-
-    def make_generators(
-        self, node_size, edge_size, hidden_size, output_size, **kwargs
-    ) -> Tuple[Callable, Callable]:
-        def make_hidden(layer_id: int):
-            if layer_id == -1:
-                return None, 3, 32
-
-            # torch.manual_seed(layer_id)
-            # np.random.seed(layer_id)
-
-            FIRST_LAYER_CHANNEL = 64
-            out_dim = 32
-            if layer_id == 0:
-                bloc = [
-                    nn.Conv2d(
-                        3,
-                        FIRST_LAYER_CHANNEL,
-                        kernel_size=3,
-                        stride=1,
-                        padding=1,
-                        bias=False,
-                    ),
-                    nn.BatchNorm2d(FIRST_LAYER_CHANNEL),
-                    nn.ReLU(),
-                ]
-                bloc = nn.Sequential(*bloc)
-
-                # print(layer_id, 'hidden')
-                # print([p for p in bloc.parameters()])
-                # total_params = sum(p.sum().item() for p in bloc.parameters())
-                # print(f"Hidden Sum parameters value layer id {layer_id}: {total_params}")
-
-                return bloc, FIRST_LAYER_CHANNEL, out_dim
-
-            in_channel = FIRST_LAYER_CHANNEL
-            total = 0
-            for block_id in range(1, 4):
-                n_of_blocks = [0, 3, 5, 1000][block_id]
-                channels_of_block = 2 ** (block_id + 5)
-
-                for i in range(n_of_blocks):
-                    total += 1
-                    if i == 0:
-                        stride = 2
-                    else:
-                        stride = 1
-
-                    out_channel = channels_of_block * BottleneckCNN.expansion
-                    out_dim //= stride
-
-                    if total == layer_id:
-                        bloc = BottleneckCNN(
-                            in_channel,
-                            channels_of_block,
-                            stride,
-                            residual=True,
-                        )
-
-                        # print(layer_id)
-                        # print([p for p in bloc.parameters()])
-                        # total_params = sum(
-                        #     p.sum().item() for p in bloc.parameters())
-                        # print(
-                        #     f"Hidden Sum parameters value layer id {layer_id}: {total_params}")
-
-                        return bloc, out_channel, out_dim
-
-                    in_channel = out_channel
-
-        def make_output(layer_id: int):
-            # if layer_id == -1:
-            #     torch.manual_seed(0)
-            #     np.random.seed(0)
-            # else:
-            #     torch.manual_seed(layer_id)
-            #     np.random.seed(layer_id)
-
-            _, last_channels, last_dim = make_hidden(layer_id)
-
-            last_hidden_size = (last_dim // 4) ** 2 * last_channels
-
-            layers = [
-                nn.AvgPool2d(4),
-                nn.Flatten(),
-                nn.Linear(last_hidden_size, 10),
-            ]
-            l = nn.Sequential(*layers)
-
-            # print(layer_id)
-            # print([p for p in l.parameters()]);
-            # exit(0)
-
-            # total_params = sum(p.sum().item() for p in l.parameters())
-            # print(f"Output Sum parameters value layer id {layer_id}: {total_params}")
-
-            return l
-
-        return lambda layer_id: make_hidden(layer_id)[0], make_output
-
-
-class MLPGenerator(LayerGenerator):
-    def make_generators(
-        self, node_size, edge_size, hidden_size, output_size, **kwargs
-    ) -> Tuple[Callable, Callable]:
-        def make_hidden(layer_id: int):
-            assert layer_id >= 0
-
-            if layer_id == 0:
-                return Sequential(Linear(node_size, hidden_size), ReLU())
-            else:
-                return Sequential(Linear(hidden_size, hidden_size), ReLU())
-
-        def make_output(layer_id: int):
-            assert layer_id >= 0
-
-            if layer_id == 0:
-                return Linear(node_size, output_size)
-            else:
-                return Linear(hidden_size, output_size)
-
-        return make_hidden, make_output
-
-
-class RelationalConv(Module):
-    """
-    Wrapper that implements multiple convolutions at a given layer,
-    one for each DISCRETE edge type. Breaks if continuous values are used
-    """
-
-    def __init__(self, edge_size, conv_layer, **kwargs):
-        super(RelationalConv, self).__init__()
-        self.edge_size = edge_size
-        self.edge_convs = ModuleList()
-
-        for _ in range(edge_size):
-            self.edge_convs.append(conv_layer(**kwargs))
-
-    def forward(
-        self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-        edge_attr: Optional[torch.Tensor] = None,
-        edge_filter: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
-        outputs = 0
-
-        for e, conv in enumerate(self.edge_convs):
-            if edge_filter is None:
-                outputs += tanh(conv(x, edge_index[:, edge_attr == e]))
-            else:
-                outputs += tanh(conv(x, edge_index[:, edge_attr == e],
-                                     edge_filter=edge_filter[edge_attr == e]))
-
-        return outputs
-
-
-class ADGNGenerator(LayerGenerator):
+class GIN_LayerGenerator:
     def make_generators(
         self,
-        node_size,
-        edge_size,
-        hidden_size,
-        output_size,
-        **kwargs,
+        node_size: int,
+        hidden_size: int,
+        output_size: int,
+        global_aggregation: bool,
     ) -> Tuple[Callable, Callable]:
         def make_hidden(layer_id: int):
             if layer_id == 0:
                 return Linear(node_size, hidden_size)
             else:
-                if edge_size == 0:
-                    # stacking Antisymmetric DGN convolutions rather than weight
-                    # sharing (see Antisymmetric DGN paper)
-                    return AntiSymmetricConv(
-                        in_channels=hidden_size,
-                        num_iters=1,
-                        epsilon=kwargs["adgn_epsilon"],
-                        gamma=kwargs["adgn_gamma"],
-                        bias=kwargs["adgn_bias"],
-                        gcn_conv=kwargs["adgn_gcn_norm"],
-                        activ_fun=kwargs["adgn_activ_fun"],
+                linear = Linear(hidden_size, hidden_size)
+                return EdgeFilterGINConv(nn=linear, train_eps=True)
+
+        def make_output(layer_id: int):
+            if not global_aggregation:
+                if layer_id == -1:
+                    return Sequential(
+                        Linear(node_size, node_size // 2),
+                        LeakyReLU(),
+                        Linear(node_size // 2, output_size),
+                        LeakyReLU(),
                     )
                 else:
-                    # DISCRETE EDGE ONLY
-                    return RelationalConv(edge_size=edge_size,
-                                          conv_layer=AntiSymmetricConv,
-                                          in_channels=hidden_size,
-                                          num_iters=1,
-                                          epsilon=kwargs["adgn_epsilon"],
-                                          gamma=kwargs["adgn_gamma"],
-                                          bias=kwargs["adgn_bias"],
-                                          gcn_conv=kwargs["adgn_gcn_norm"],
-                                          activ_fun=kwargs["adgn_activ_fun"])
-
-        def make_output(layer_id: int):
-
-            if not kwargs["global_aggregation"]:
-                if layer_id == -1:
-                    return Sequential(OrderedDict([
-                                ('L1', Linear(node_size, node_size // 2)),
-                                ('LeakyReLU1', LeakyReLU()),
-                                ('L2', Linear(node_size // 2, output_size)),
-                                ('LeakyReLU2', LeakyReLU())
-                    ]))
-                else:
-                    return Sequential(OrderedDict([
-                                ('L1', Linear(hidden_size, hidden_size // 2)),
-                                ('LeakyReLU1', LeakyReLU()),
-                                ('L2', Linear(hidden_size // 2, output_size)),
-                                ('LeakyReLU2', LeakyReLU())
-                    ]))
+                    return Sequential(
+                        Linear(hidden_size, hidden_size // 2),
+                        LeakyReLU(),
+                        Linear(hidden_size // 2, output_size),
+                        LeakyReLU(),
+                    )
             else:
                 if layer_id == -1:
-                    return Sequential(OrderedDict([
-                                ('L1', Linear((node_size*3), (node_size*3) // 2)),
-                                ('LeakyReLU1', LeakyReLU()),
-                                ('L2', Linear((node_size*3) // 2, output_size)),
-                                ('LeakyReLU2', LeakyReLU())
-                    ]))
+                    return Sequential(
+                        Linear((node_size * 3), (node_size * 3) // 2),
+                        LeakyReLU(),
+                        Linear((node_size * 3) // 2, output_size),
+                        LeakyReLU(),
+                    )
                 else:
-                    return Sequential(OrderedDict([
-                                ('L1', Linear((hidden_size*3), (hidden_size*3) // 2)),
-                                ('LeakyReLU1', LeakyReLU()),
-                                ('L2', Linear((hidden_size*3) // 2, output_size)),
-                                ('LeakyReLU2', LeakyReLU())
-                    ]))
-
-
-
-        return make_hidden, make_output
-
-
-class DGNGenerator(LayerGenerator):
-    def make_generators(
-        self,
-        node_size,
-        edge_size,
-        hidden_size,
-        output_size,
-        **kwargs,
-    ) -> Tuple[Callable, Callable]:
-
-        def make_hidden(layer_id: int):
-            if layer_id == 0:
-                return Linear(node_size, hidden_size)
-            else:
-                conv_name = kwargs['conv_layer']
-
-                if edge_size == 0:
-
-                    if conv_name == 'GINConv':
-                        mlp = Linear(hidden_size, hidden_size)
-                        return EdgeFilterGINConv(nn=mlp, train_eps=True)
-
-                    elif conv_name == 'GCNConv':
-                        return EdgeFilterGCNConv(in_channels=hidden_size,
-                                                 out_channels=hidden_size,
-                                                 add_self_loops=False)
-                    else:
-                        raise NotImplementedError(f'Conv layer not recognized: {conv_name}')
-                else:
-                    # DISCRETE EDGE ONLY
-                    if conv_name == 'GINConv':
-                        mlp = Linear(hidden_size, hidden_size)
-                        return RelationalConv(edge_size=edge_size,
-                                              conv_layer=EdgeFilterGINConv,
-                                              nn=mlp, train_eps=True)
-
-                    elif conv_name == 'GCNConv':
-                        return RelationalConv(edge_size=edge_size,
-                                              conv_layer=EdgeFilterGCNConv,
-                                              in_channels=hidden_size,
-                                              out_channels=hidden_size,
-                                              add_self_loops=False)
-                    else:
-                        raise NotImplementedError(
-                            f'Conv layer not recognized: {conv_name}')
-
-        def make_output(layer_id: int):
-
-            if not kwargs["global_aggregation"]:
-                if layer_id == -1:
-                    return Sequential(OrderedDict([
-                                ('L1', Linear(node_size, node_size // 2)),
-                                ('LeakyReLU1', LeakyReLU()),
-                                ('L2', Linear(node_size // 2, output_size)),
-                                ('LeakyReLU2', LeakyReLU())
-                    ]))
-                else:
-                    return Sequential(OrderedDict([
-                                ('L1', Linear(hidden_size, hidden_size // 2)),
-                                ('LeakyReLU1', LeakyReLU()),
-                                ('L2', Linear(hidden_size // 2, output_size)),
-                                ('LeakyReLU2', LeakyReLU())
-                    ]))
-            else:
-                if layer_id == -1:
-                    return Sequential(OrderedDict([
-                                ('L1', Linear((node_size*3), (node_size*3) // 2)),
-                                ('LeakyReLU1', LeakyReLU()),
-                                ('L2', Linear((node_size*3) // 2, output_size)),
-                                ('LeakyReLU2', LeakyReLU())
-                    ]))
-                else:
-                    return Sequential(OrderedDict([
-                                ('L1', Linear((hidden_size*3), (hidden_size*3) // 2)),
-                                ('LeakyReLU1', LeakyReLU()),
-                                ('L2', Linear((hidden_size*3) // 2, output_size)),
-                                ('LeakyReLU2', LeakyReLU())
-                    ]))
-
-        return make_hidden, make_output
-
-
-class LRGBGenerator(LayerGenerator):
-    def make_generators(
-        self,
-        node_size,
-        edge_size,
-        hidden_size,
-        output_size,
-        **kwargs,
-    ) -> Tuple[Callable, Callable]:
-
-        dropout = kwargs['dropout']
-
-        def make_hidden(layer_id: int):
-            if layer_id == 0:
-                return Sequential(Linear(node_size, hidden_size),
-                                  GELU(),
-                                  Linear(hidden_size, hidden_size))
-            else:
-                conv_name = kwargs['conv_layer']
-
-                if conv_name == 'GINConv':
-                    mlp = Sequential(Linear(hidden_size, hidden_size),
-                                      GELU(),
-                                      Linear(hidden_size, hidden_size))
-                    return EdgeFilterGINConv(nn=mlp, train_eps=True)
-
-                elif conv_name == 'GCNConv':
-                    return EdgeFilterGCNConv(in_channels=hidden_size,
-                                             out_channels=hidden_size,
-                                             add_self_loops=False)
-                elif conv_name == 'GINEConv':
-                    mlp = Sequential(Linear(hidden_size, hidden_size),
-                                      GELU(),
-                                      Linear(hidden_size, hidden_size))
-                    return EdgeFilterGINEConv(nn=mlp,
-                                              train_eps=True,
-                                              edge_dim=edge_size)
-                elif conv_name == 'ResGatedGraphConv':
-                    return EdgeFilterGatedGCNConv(hidden_size, hidden_size)
-                else:
-                    raise NotImplementedError(f'Conv layer not recognized: {conv_name}')
-
-
-        def make_output(layer_id: int):
-
-            if layer_id == -1:
-                return Sequential(
-                            Linear(node_size, hidden_size),
-                            GELU(),
-                            Dropout(dropout),
-                            Linear(hidden_size, hidden_size),
-                            GELU(),
-                            Dropout(dropout),
-                            Linear(hidden_size, output_size),
-                )
-            else:
-                return Sequential(
-                            Dropout(dropout),
-                            Linear(hidden_size, hidden_size),
-                            GELU(),
-                            Dropout(dropout),
-                            Linear(hidden_size, hidden_size),
-                            GELU(),
-                            Dropout(dropout),
-                            Linear(hidden_size, output_size),
-                )
-
+                    return Sequential(
+                        Linear((hidden_size * 3), (hidden_size * 3) // 2),
+                        LeakyReLU(),
+                        Linear((hidden_size * 3) // 2, output_size),
+                        LeakyReLU(),
+                    )
 
         return make_hidden, make_output
